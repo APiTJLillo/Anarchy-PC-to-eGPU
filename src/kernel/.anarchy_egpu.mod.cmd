@@ -1,0 +1,1 @@
+savedcmd_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/anarchy_egpu.mod := printf '%s\n'   main.o thunderbolt.o pcie.o anarchy-perf.o | awk '!x[$$0]++ { print("/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/"$$0) }' > /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/anarchy_egpu.mod

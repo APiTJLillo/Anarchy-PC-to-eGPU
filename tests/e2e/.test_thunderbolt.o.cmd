@@ -1,0 +1,1 @@
+savedcmd_/home/tj/Documents/Anarchy-PC-to-eGPU/tests/e2e/test_thunderbolt.o := ld -m elf_x86_64 -z noexecstack --no-warn-rwx-segments   -r -o /home/tj/Documents/Anarchy-PC-to-eGPU/tests/e2e/test_thunderbolt.o @/home/tj/Documents/Anarchy-PC-to-eGPU/tests/e2e/test_thunderbolt.mod 

@@ -1,0 +1,1 @@
+savedcmd_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/Module.symvers :=  scripts/mod/modpost -M -m -a  -w    -o /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/Module.symvers -T /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/modules.order -i Module.symvers -e 
