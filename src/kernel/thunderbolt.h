@@ -1,96 +1,47 @@
-#ifndef _ANARCHY_THUNDERBOLT_H_
-#define _ANARCHY_THUNDERBOLT_H_
+#ifndef ANARCHY_THUNDERBOLT_H
+#define ANARCHY_THUNDERBOLT_H
 
-#include <linux/types.h>
 #include <linux/thunderbolt.h>
-#include "anarchy-egpu.h"
-#include "pcie.h"
+#include "forward.h"
+#include "anarchy_device.h"
 
-/* Thunderbolt service states */
-enum tb_service_state {
-    TB_SERVICE_DISCONNECTED = 0,
-    TB_SERVICE_CONNECTING,
-    TB_SERVICE_CONNECTED,
-    TB_SERVICE_ERROR
+/* Thunderbolt service protocol configuration */
+#define TBSVC_MATCH_PROTOCOL_KEY       BIT(0)
+#define TBSVC_MATCH_PROTOCOL_ID        BIT(1)
+#define TBSVC_MATCH_PROTOCOL_VERSION   BIT(2)
+
+#define ANARCHY_SERVICE_MATCH_FLAGS (TBSVC_MATCH_PROTOCOL_KEY | \
+                                   TBSVC_MATCH_PROTOCOL_ID | \
+                                   TBSVC_MATCH_PROTOCOL_VERSION)
+
+#define ANARCHY_SERVICE_PROTOCOL_KEY    0x4E574F44  /* "DOWN" */
+#define ANARCHY_SERVICE_PROTOCOL_ID     0x01
+#define ANARCHY_PROTOCOL_VERSION        0x01
+
+/* Service configuration */
+struct tb_service_config {
+    u32 max_lanes;
+    u32 max_speed;
+    u32 power_limit;
+    bool endpoint_mode;
 };
 
-/* Thunderbolt mode definitions */
-#define TB_MODE_THUNDERBOLT 1
-#define TB_MODE_USB4       2
+/* Core thunderbolt interface */
+int anarchy_tb_init(void);
+void anarchy_tb_exit(void);
+void anarchy_tb_pcie_disable(struct anarchy_device *adev);
+struct anarchy_device *anarchy_get_device(void);
 
-/* Thunderbolt power states */
-#define TB_SWITCH_POWER_ON  1
-#define TB_SWITCH_POWER_OFF 0
-#define TB_SWITCH_POWER_ERROR -1
+/* Error handling */
+void anarchy_handle_connection_error(struct anarchy_device *adev, int err);
+int anarchy_tb_reset_connection(struct anarchy_device *adev);
+void anarchy_tb_error_recovery(struct work_struct *work);
 
-/* Thunderbolt service structure */
-struct anarchy_tb_service {
-    struct tb_service *service;
-    struct tb_nhi *nhi;
-    struct anarchy_device *adev;
-    enum tb_service_state state;
-    struct work_struct recovery_work;
-    atomic_t recovery_pending;
-    int retry_count;
-};
+/* Service configuration */
+int tb_service_configure(struct tb_service *svc, 
+                        const struct tb_service_config *config);
+int tb_service_start(struct tb_service *svc);
+void tb_service_stop(struct tb_service *svc);
+int tb_service_reset(struct tb_service *svc);
 
-/* Thunderbolt helper functions */
-static inline bool tb_router_is_accessible(struct tb_service *service)
-{
-    if (!service || !service->dev.parent)
-        return false;
-    return true;
-}
-
-static inline bool tb_switch_get_mode(struct tb_service *service)
-{
-    if (!service || !service->dev.parent)
-        return false;
-    return true;
-}
-
-static inline int tb_switch_set_mode(struct tb_service *service, int mode)
-{
-    if (!service || !service->dev.parent)
-        return -EINVAL;
-    return 0;
-}
-
-static inline int tb_switch_power_state(struct tb_service *service)
-{
-    if (!service || !service->dev.parent)
-        return TB_SWITCH_POWER_ERROR;
-    return TB_SWITCH_POWER_ON;
-}
-
-/* Function declarations */
-int anarchy_tb_service_probe(struct tb_service *svc);
-void anarchy_tb_service_remove(struct tb_service *svc);
-int anarchy_tb_service_suspend(struct tb_service *svc);
-int anarchy_tb_service_resume(struct tb_service *svc);
-void anarchy_tb_service_shutdown(struct tb_service *svc);
-int anarchy_tb_service_init(struct anarchy_device *adev);
-void anarchy_tb_service_exit(struct anarchy_device *adev);
-void anarchy_tb_service_recovery_work(struct work_struct *work);
-int anarchy_tb_service_recovery(struct anarchy_device *adev);
-
-/* Ring frame structure */
-struct ring_frame {
-    void *data;
-    dma_addr_t dma;
-    size_t size;
-    u32 flags;
-};
-
-/* Service functions */
-int anarchy_service_probe(struct tb_service *svc, const struct tb_service_id *id);
-void anarchy_service_remove(struct tb_service *svc);
-
-/* Ring management functions */
-void anarchy_ring_frame_callback(struct tb_ring *ring, struct ring_frame *frame, bool canceled);
-int anarchy_ring_init(struct anarchy_device *adev, struct anarchy_ring *ring);
-void anarchy_ring_cleanup(struct anarchy_device *adev, struct anarchy_ring *ring);
-int anarchy_ring_start(struct anarchy_device *adev, struct anarchy_ring *ring, bool tx);
-void anarchy_ring_stop(struct anarchy_device *adev, struct anarchy_ring *ring);
-
-#endif /* _ANARCHY_THUNDERBOLT_H_ */ 
+#endif /* ANARCHY_THUNDERBOLT_H */

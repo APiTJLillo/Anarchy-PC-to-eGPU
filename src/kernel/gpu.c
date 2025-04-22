@@ -9,6 +9,7 @@
 #include "anarchy-gpu.h"
 #include "anarchy-debug.h"
 #include "anarchy-perf.h"
+#include "pcie.h"
 
 /* Maximum number of reset attempts before giving up */
 #define ANARCHY_GPU_MAX_RESETS 3
@@ -338,42 +339,36 @@ void anarchy_gpu_check_status(struct anarchy_device *adev)
         anarchy_gpu_handle_error(adev, GPU_ERR_FATAL);
 }
 
-/**
- * anarchy_gpu_init - Initialize GPU error handling
- * @adev: Anarchy device structure
- *
- * This function initializes the GPU error handling subsystem.
- */
+/* GPU configuration callbacks for game optimization */
+static struct gpu_config_ops gpu_ops = {
+    .set_power_limit = anarchy_gpu_set_power_limit,
+    .set_clocks = anarchy_gpu_set_clocks,
+    .set_memory_config = anarchy_gpu_set_memory_config,
+    .optimize_for_game = anarchy_optimize_for_game,
+};
+
+/* GPU configuration settings for mobile RTX 4090 */
+static const struct gpu_config default_config = {
+    .core_clock = 1395,    /* Base clock 1395 MHz */
+    .boost_clock = 2040,   /* Boost clock 2040 MHz */
+    .mem_clock = 21000,    /* Memory clock 21 Gbps */
+    .power_limit = 175,    /* Default TGP 175W */
+    .vram_size = 16384,    /* 16GB VRAM */
+    .memory_type = "GDDR6X",
+    .pcie_gen = 4,        /* PCIe Gen4 */
+    .pcie_lanes = 8,      /* x8 lanes over TB4 */
+};
+
 int anarchy_gpu_init(struct anarchy_device *adev)
 {
-    /* Initialize error handling state */
-    adev->gpu_errors.last_error = GPU_ERR_NONE;
-    adev->gpu_errors.reset_state = ANARCHY_GPU_RESET_NONE;
-    adev->gpu_errors.reset_count = 0;
-    adev->gpu_errors.last_reset_time = ktime_get();
-    atomic_set(&adev->gpu_errors.pending_faults, 0);
-
-    /* Initialize statistics */
-    atomic_set(&adev->gpu_errors.stats.timeout_errors, 0);
-    atomic_set(&adev->gpu_errors.stats.ecc_errors, 0);
-    atomic_set(&adev->gpu_errors.stats.thermal_errors, 0);
-    atomic_set(&adev->gpu_errors.stats.power_errors, 0);
-    atomic_set(&adev->gpu_errors.stats.memory_errors, 0);
-    atomic_set(&adev->gpu_errors.stats.engine_errors, 0);
-    atomic_set(&adev->gpu_errors.stats.fatal_errors, 0);
-
-    /* Initialize synchronization primitives */
-    spin_lock_init(&adev->gpu_reset_lock);
-    init_waitqueue_head(&adev->gpu_reset_wait);
-
-    /* Create reset workqueue */
-    adev->gpu_reset_wq = create_singlethread_workqueue("anarchy_gpu_reset");
-    if (!adev->gpu_reset_wq)
-        return -ENOMEM;
-
-    INIT_WORK(&adev->gpu_reset_work, anarchy_gpu_reset_work);
-
-    return 0;
+    /* Register configuration callbacks */
+    adev->gpu_ops = &gpu_ops;
+    
+    /* Apply default configuration */
+    memcpy(&adev->gpu_config, &default_config, sizeof(struct gpu_config));
+    
+    /* Initialize game-specific optimizations */
+    return anarchy_optimize_for_game(adev, "default");
 }
 
 /**
@@ -469,4 +464,52 @@ void anarchy_gpu_cleanup_error_handling(struct anarchy_device *adev)
         destroy_workqueue(adev->error_state.recovery_wq);
         adev->error_state.recovery_wq = NULL;
     }
-} 
+}
+
+/* GPU feature initialization */
+int anarchy_gpu_init_features(struct anarchy_device *adev)
+{
+    dev_info(adev->dev, "Initializing RTX 4090 features\n");
+
+    /* For now, just return success. We'll implement actual GPU features later */
+    return 0;
+}
+
+/* GPU feature cleanup */
+void anarchy_gpu_cleanup_features(struct anarchy_device *adev)
+{
+    dev_info(adev->dev, "Cleaning up RTX 4090 features\n");
+}
+
+/**
+ * anarchy_gpu_power_on - Power on the GPU
+ * @dev: Anarchy device structure
+ *
+ * This function powers on the GPU and initializes it.
+ */
+int anarchy_gpu_power_on(struct anarchy_device *dev)
+{
+    if (!dev)
+        return -EINVAL;
+
+    dev_info(dev->dev, "Powering on GPU\n");
+    /* TODO: Implement actual GPU power on sequence */
+    msleep(100); /* Wait for power stabilization */
+    return 0;
+}
+
+/**
+ * anarchy_gpu_power_off - Power off the GPU
+ * @dev: Anarchy device structure
+ *
+ * This function powers off the GPU.
+ */
+void anarchy_gpu_power_off(struct anarchy_device *dev)
+{
+    if (!dev)
+        return;
+
+    dev_info(dev->dev, "Powering off GPU\n");
+    /* TODO: Implement actual GPU power off sequence */
+    msleep(100); /* Wait for power down */
+}

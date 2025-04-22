@@ -1,5 +1,4 @@
-anarchy-perf.o: \
- /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/anarchy-perf.c \
+main.o: /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/main.c \
  include/linux/compiler-version.h include/linux/kconfig.h \
  include/generated/autoconf.h include/linux/compiler_types.h \
  include/linux/compiler_attributes.h include/linux/compiler-gcc.h \
@@ -267,25 +266,23 @@ anarchy-perf.o: \
  include/linux/moduleparam.h include/linux/rbtree_latch.h \
  include/linux/error-injection.h include/asm-generic/error-injection.h \
  arch/x86/include/asm/module.h include/asm-generic/module.h \
- arch/x86/include/asm/orc_types.h \
- /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/anarchy-perf.h \
- /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/../../include/anarchy-egpu.h \
- include/linux/pci.h include/linux/mod_devicetable.h \
- include/uapi/linux/mei.h include/uapi/linux/mei_uuid.h \
- include/linux/ioport.h include/linux/device.h include/linux/dev_printk.h \
+ arch/x86/include/asm/orc_types.h include/linux/thunderbolt.h \
+ include/linux/device.h include/linux/dev_printk.h \
  include/linux/energy_model.h include/linux/sched/cpufreq.h \
  include/linux/sched/topology.h include/linux/sched/idle.h \
- include/linux/sched/sd_flags.h include/linux/klist.h include/linux/pm.h \
- include/linux/device/bus.h include/linux/device/class.h \
- include/linux/device/driver.h arch/x86/include/asm/device.h \
- include/linux/pm_wakeup.h include/linux/interrupt.h \
- include/linux/irqreturn.h include/linux/hardirq.h \
- include/linux/context_tracking_state.h include/linux/ftrace_irq.h \
- include/linux/vtime.h arch/x86/include/asm/hardirq.h \
- arch/x86/include/asm/irq.h arch/x86/include/asm/irq_vectors.h \
- arch/x86/include/asm/sections.h include/asm-generic/sections.h \
- include/linux/io.h include/linux/sizes.h arch/x86/include/asm/io.h \
- arch/x86/include/generated/asm/early_ioremap.h \
+ include/linux/sched/sd_flags.h include/linux/ioport.h \
+ include/linux/klist.h include/linux/pm.h include/linux/device/bus.h \
+ include/linux/device/class.h include/linux/device/driver.h \
+ arch/x86/include/asm/device.h include/linux/pm_wakeup.h \
+ include/linux/mod_devicetable.h include/uapi/linux/mei.h \
+ include/uapi/linux/mei_uuid.h include/linux/pci.h \
+ include/linux/interrupt.h include/linux/irqreturn.h \
+ include/linux/hardirq.h include/linux/context_tracking_state.h \
+ include/linux/ftrace_irq.h include/linux/vtime.h \
+ arch/x86/include/asm/hardirq.h arch/x86/include/asm/irq.h \
+ arch/x86/include/asm/irq_vectors.h arch/x86/include/asm/sections.h \
+ include/asm-generic/sections.h include/linux/io.h include/linux/sizes.h \
+ arch/x86/include/asm/io.h arch/x86/include/generated/asm/early_ioremap.h \
  include/asm-generic/early_ioremap.h arch/x86/include/asm/shared/io.h \
  include/asm-generic/io.h include/asm-generic/iomap.h \
  include/asm-generic/pci_iomap.h include/linux/logic_pio.h \
@@ -299,4 +296,33 @@ anarchy-perf.o: \
  include/linux/vmstat.h include/linux/vm_event_item.h \
  arch/x86/include/asm/pci.h arch/x86/include/asm/memtype.h \
  include/linux/dma-mapping.h include/linux/dma-direction.h \
- include/linux/thunderbolt.h
+ include/linux/delay.h arch/x86/include/asm/delay.h \
+ include/asm-generic/delay.h \
+ /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/types.h \
+ /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/anarchy_device.h \
+ /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/forward.h \
+ /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/gpu_config.h \
+ /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/pcie_state.h \
+ /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/pcie_types.h \
+ /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/ring.h \
+ /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/bandwidth.h \
+ /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/power_mgmt.h \
+ /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/perf_monitor.h \
+ /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/anarchy_device.h \
+ /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/service_pm.h \
+ /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/service_probe.h \
+ /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/common.h \
+ /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/types.h \
+ /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/gpu_emu.h \
+ /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/game_compat.h \
+ /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/command_proc.h \
+ /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/usb4_config.h \
+ /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/thermal.h \
+ include/linux/thermal.h include/linux/of.h include/linux/property.h \
+ include/uapi/linux/thermal.h \
+ /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/pcie.h \
+ /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/common.h \
+ /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/gpu_power.h \
+ /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/thunderbolt.h \
+ /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/forward.h \
+ /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/anarchy_device.h

@@ -1,4 +1,0 @@
-0x78c2ccd9	anarchy_tb_init	/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/anarchy_egpu	EXPORT_SYMBOL_GPL	
-0x862eaf80	anarchy_tb_exit	/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/anarchy_egpu	EXPORT_SYMBOL_GPL	
-0x1d3d1a3d	anarchy_get_device	/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/anarchy_egpu	EXPORT_SYMBOL_GPL	
-0x2fefb395	anarchy_perf_tb_event	/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/anarchy_egpu	EXPORT_SYMBOL_GPL	

@@ -1,4 +1,7 @@
-KDIR ?= /lib/modules/$(shell uname -r)/build
+obj-m := anarchy-egpu.o
+anarchy-egpu-objs := src/kernel/main.o src/kernel/thunderbolt.o src/kernel/pcie.o src/kernel/gpu.o
+
+KDIR := /lib/modules/$(shell uname -r)/build
 PWD := $(shell pwd)
 
 .PHONY: all clean test modules
