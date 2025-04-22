@@ -30,9 +30,9 @@ static void anarchy_service_shutdown(struct device *dev);
 static const struct tb_service_id anarchy_service_table[] = {
     {
         .match_flags = ANARCHY_SERVICE_MATCH_FLAGS,
-        .protocol_key = ANARCHY_SERVICE_PROTOCOL_KEY,
-        .protocol_id = ANARCHY_SERVICE_PROTOCOL_ID,
-        .protocol_version = ANARCHY_PROTOCOL_VERSION,
+        .protocol_key = ANARCHY_SERVICE_ID,
+        .protocol_id = ANARCHY_SERVICE_ID,
+        .protocol_version = ANARCHY_SERVICE_VERSION,
         .protocol_revision = 0,
         .driver_data = 0
     },
@@ -56,7 +56,7 @@ static struct tb_service_driver anarchy_service_driver = {
 /* Shutdown callback for graceful device shutdown */
 static void anarchy_service_shutdown(struct device *dev)
 {
-    struct tb_service *svc = to_tb_service(dev);
+    struct tb_service *svc = tb_to_service(dev);
     struct anarchy_device *adev = tb_service_get_drvdata(svc);
 
     if (!adev)

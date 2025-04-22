@@ -14,6 +14,10 @@
 #include "thermal.h"
 #include "pcie.h"
 
+/* Performance monitoring function declarations */
+int init_performance_monitoring(struct anarchy_device *adev);
+void cleanup_performance_monitoring(struct anarchy_device *adev);
+
 /* Declare module parameters */
 extern int power_limit;
 extern int num_dma_channels;
@@ -31,17 +35,18 @@ static int anarchy_service_probe(struct tb_service *svc, const struct tb_service
         return -ENOMEM;
 
     /* Basic device setup */
+    device_initialize(&adev->dev);
     adev->dev.parent = dev;
     adev->service = svc;
     
     /* Initialize power profile */
-    adev->current_profile.fan_speed = P16_FAN_MIN_SPEED;
-    adev->current_profile.power_limit = power_limit;
-    adev->current_profile.dynamic_control = true;
+    adev->power_profile.fan_speed = P16_FAN_MIN_SPEED;
+    adev->power_profile.power_limit = power_limit;
+    adev->power_profile.dynamic_control = true;
     
-    /* Initialize device capabilities */
-    adev->max_speed = PCIE_GEN4_SPEED;
-    adev->max_lanes = PCIE_MAX_LANES;
+    /* Initialize PCIe configuration */
+    adev->pcie_state.link_speed = ANARCHY_PCIE_GEN4;
+    adev->pcie_state.link_width = ANARCHY_PCIE_x8;
     adev->dma_channels = num_dma_channels;
     adev->ring_buffer_size = RING_BUFFER_SIZE;
 

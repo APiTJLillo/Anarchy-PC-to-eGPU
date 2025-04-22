@@ -1,3 +1,4 @@
+# Kernel module name and objects
 obj-m += anarchy_egpu.o
 anarchy_egpu-objs := main.o thunderbolt.o pcie.o \
                     command_proc.o dma.o game_compat.o \
@@ -5,31 +6,18 @@ anarchy_egpu-objs := main.o thunderbolt.o pcie.o \
                     usb4_device.o hotplug.o thermal.o bandwidth.o \
                     device.o device_remove.o anarchy-perf.o
 
-# Kernel build directory
+# Kernel build directory and current directory
 KDIR := /lib/modules/$(shell uname -r)/build
-
-# Current directory
 PWD := $(shell pwd)
 
 # Include paths
-ccflags-y := -I$(src)/include -I$(src)/../include
+ccflags-y := -I$(src)/include -I$(src)/../include -I$(src)/../../include
 
 # Debug flags
 ccflags-$(CONFIG_ANARCHY_EGPU_DEBUG) += -DDEBUG
 
-# Warning flags (excluding ones that cause issues with kernel code)
+# Warning flags
 ccflags-y += -Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers
-
-KDIR := /lib/modules/$(shell uname -r)/build
-PWD := $(shell pwd)
-
-ccflags-y := -I$(src)/../../include
-
-# Debug flags
-ccflags-$(CONFIG_ANARCHY_EGPU_DEBUG) += -DDEBUG
-
-# Version
-ccflags-y += -DDRIVER_VERSION=\"0.1.0\"
 
 # Thunderbolt dependency
 CFLAGS_thunderbolt.o := -I$(src)/../../include -Wno-missing-braces
@@ -49,9 +37,6 @@ EXTRA_CFLAGS += -I$(KDIR)/arch/$(ARCH)/include/generated
 EXTRA_CFLAGS += -I$(KDIR)/include/uapi
 EXTRA_CFLAGS += -I$(KDIR)/include/generated/uapi
 
-# Debug configuration
-ccflags-$(CONFIG_ANARCHY_EGPU_DEBUG) += -DDEBUG
-
 # Module versioning
 EXTRA_CFLAGS += -DDRIVER_VERSION=\"0.1.0\"
 
@@ -64,16 +49,10 @@ all:
 
 clean:
 	$(MAKE) -C $(KDIR) M=$(PWD) clean
+	rm -f *.o *.ko *.mod.c *.mod.o *.symvers *.order
 
-install:
+install: all
 	$(MAKE) -C $(KDIR) M=$(PWD) modules_install
 	depmod -a
 
-clean:
-	$(MAKE) -C $(KDIR) M=$(PWD) clean
-
-install:
-	$(MAKE) -C $(KDIR) M=$(PWD) modules_install
-	depmod -a
-
-.PHONY: all clean install 
+.PHONY: all clean install

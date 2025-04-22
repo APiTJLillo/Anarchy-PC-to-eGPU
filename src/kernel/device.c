@@ -7,77 +7,228 @@ int anarchy_device_init(struct anarchy_device *adev)
 {
     int ret;
 
-    /* Initialize USB4/TB4 device mode */
-    ret = anarchy_usb4_init_device(adev);
-    if (ret)
-        return ret;
+    if (!adev)
+        return -EINVAL;
 
-    /* Initialize PCIe endpoint mode */
-    adev->max_speed = 4;  /* PCIe Gen4 */
-    adev->max_lanes = 8;  /* x8 over TB4 */
-    adev->is_endpoint = true;
+    /* Initialize device state */
+    adev->state = ANARCHY_DEVICE_STATE_INITIALIZING;
+    adev->flags = 0;
+    mutex_init(&adev->lock);
 
-    /* Set up GPU configuration */
-    ret = anarchy_gpu_init(adev);
-    if (ret)
-        goto err_usb4;
+    /* Initialize workqueue */
+    adev->wq = create_singlethread_workqueue("anarchy-device");
+    if (!adev->wq)
+        return -ENOMEM;
 
-    /* Initialize DMA configuration */
-    adev->dma_channels = 12;
-    adev->ring_buffer_size = 512;
-    adev->max_payload_size = 512;
-    ret = anarchy_dma_init_gaming(adev);
+    /* Initialize PCIe subsystem */
+    ret = anarchy_pcie_init(adev);
     if (ret)
-        goto err_gpu;
+        goto err_wq;
 
-    /* Initialize game compatibility */
-    ret = init_game_compatibility(adev);
+    /* Initialize ring buffers */
+    ret = anarchy_ring_init(adev, &adev->tx_ring);
     if (ret)
-        goto err_dma;
+        goto err_pcie;
+
+    ret = anarchy_ring_init(adev, &adev->rx_ring);
+    if (ret)
+        goto err_tx_ring;
 
     /* Initialize performance monitoring */
-    ret = init_performance_monitoring(adev);
+    ret = anarchy_perf_init(adev);
     if (ret)
-        goto err_compat;
+        goto err_rx_ring;
 
-    /* Initialize bandwidth monitoring */
-    ret = init_bandwidth_monitoring(adev);
+    /* Initialize power management */
+    ret = anarchy_power_init(adev);
     if (ret)
         goto err_perf;
 
-    /* Initialize command processor */
-    ret = init_command_processor(adev);
+    /* Start performance monitoring */
+    ret = anarchy_perf_start(adev);
     if (ret)
-        goto err_bw;
+        goto err_power;
 
-    /* Initialize thermal management */
-    ret = anarchy_thermal_init(adev);
+    /* Train PCIe link */
+    ret = anarchy_pcie_train_link(adev);
     if (ret)
-        goto err_cmd;
+        goto err_perf_start;
 
-    /* Initialize hot-plug detection */
-    ret = anarchy_hotplug_init(adev);
+    /* Start ring buffers */
+    ret = anarchy_ring_start(adev, &adev->tx_ring, true);
     if (ret)
-        goto err_thermal;
+        goto err_pcie_train;
 
-    dev_info(&adev->dev, "Device initialized successfully\n");
+    ret = anarchy_ring_start(adev, &adev->rx_ring, false);
+    if (ret)
+        goto err_tx_start;
+
+    adev->state = ANARCHY_DEVICE_STATE_READY;
+    adev->flags |= ANARCHY_DEVICE_FLAG_INITIALIZED;
     return 0;
 
-err_thermal:
-    anarchy_thermal_exit(adev);
-err_cmd:
-    cleanup_command_processor(adev);
-err_bw:
-    cleanup_bandwidth_monitoring(adev);
+err_tx_start:
+    anarchy_ring_stop(adev, &adev->tx_ring);
+err_pcie_train:
+    anarchy_pcie_disable(adev);
+err_perf_start:
+    anarchy_perf_stop(adev);
+err_power:
+    anarchy_power_exit(adev);
 err_perf:
-    cleanup_performance_monitoring(adev);
-err_compat:
-    cleanup_game_compatibility(adev);
-err_dma:
-    anarchy_dma_cleanup(adev);
-err_gpu:
-    anarchy_gpu_cleanup(adev);
-err_usb4:
-    anarchy_usb4_exit_device(adev);
+    anarchy_perf_exit(adev);
+err_rx_ring:
+    anarchy_ring_cleanup(adev, &adev->rx_ring);
+err_tx_ring:
+    anarchy_ring_cleanup(adev, &adev->tx_ring);
+err_pcie:
+    anarchy_pcie_exit(adev);
+err_wq:
+    destroy_workqueue(adev->wq);
+    return ret;
+}
+
+void anarchy_device_exit(struct anarchy_device *adev)
+{
+    if (!adev)
+        return;
+
+    /* Stop services */
+    anarchy_perf_stop(adev);
+    anarchy_ring_stop(adev, &adev->tx_ring);
+    anarchy_ring_stop(adev, &adev->rx_ring);
+    anarchy_pcie_disable(adev);
+
+    /* Cleanup subsystems */
+    anarchy_power_exit(adev);
+    anarchy_perf_exit(adev);
+    anarchy_ring_cleanup(adev, &adev->rx_ring);
+    anarchy_ring_cleanup(adev, &adev->tx_ring);
+    anarchy_pcie_exit(adev);
+
+    /* Cleanup device */
+    if (adev->wq)
+        destroy_workqueue(adev->wq);
+
+    adev->state = ANARCHY_DEVICE_STATE_UNINITIALIZED;
+    adev->flags &= ~ANARCHY_DEVICE_FLAG_INITIALIZED;
+}
+
+int anarchy_device_connect(struct anarchy_device *adev)
+{
+    int ret;
+
+    if (!adev)
+        return -EINVAL;
+
+    mutex_lock(&adev->lock);
+
+    /* Train PCIe link */
+    ret = anarchy_pcie_train_link(adev);
+    if (ret)
+        goto unlock;
+
+    /* Start ring buffers */
+    ret = anarchy_ring_start(adev, &adev->tx_ring, true);
+    if (ret)
+        goto disable_pcie;
+
+    ret = anarchy_ring_start(adev, &adev->rx_ring, false);
+    if (ret)
+        goto stop_tx;
+
+    adev->flags |= ANARCHY_DEVICE_FLAG_CONNECTED;
+    mutex_unlock(&adev->lock);
+    return 0;
+
+stop_tx:
+    anarchy_ring_stop(adev, &adev->tx_ring);
+disable_pcie:
+    anarchy_pcie_disable(adev);
+unlock:
+    mutex_unlock(&adev->lock);
+    return ret;
+}
+
+void anarchy_device_disconnect(struct anarchy_device *adev)
+{
+    if (!adev)
+        return;
+
+    mutex_lock(&adev->lock);
+
+    /* Stop everything */
+    anarchy_ring_stop(adev, &adev->tx_ring);
+    anarchy_ring_stop(adev, &adev->rx_ring);
+    anarchy_pcie_disable(adev);
+
+    adev->flags &= ~ANARCHY_DEVICE_FLAG_CONNECTED;
+    mutex_unlock(&adev->lock);
+}
+
+int anarchy_device_suspend(struct anarchy_device *adev)
+{
+    int ret = 0;
+
+    if (!adev)
+        return -EINVAL;
+
+    mutex_lock(&adev->lock);
+
+    /* Stop performance monitoring */
+    anarchy_perf_stop(adev);
+
+    /* Stop ring buffers */
+    anarchy_ring_stop(adev, &adev->tx_ring);
+    anarchy_ring_stop(adev, &adev->rx_ring);
+
+    /* Disable PCIe link */
+    anarchy_pcie_disable(adev);
+
+    adev->flags |= ANARCHY_DEVICE_FLAG_SUSPENDED;
+    mutex_unlock(&adev->lock);
+    return ret;
+}
+
+int anarchy_device_resume(struct anarchy_device *adev)
+{
+    int ret;
+
+    if (!adev)
+        return -EINVAL;
+
+    mutex_lock(&adev->lock);
+
+    /* Train PCIe link */
+    ret = anarchy_pcie_train_link(adev);
+    if (ret)
+        goto unlock;
+
+    /* Start ring buffers */
+    ret = anarchy_ring_start(adev, &adev->tx_ring, true);
+    if (ret)
+        goto disable_pcie;
+
+    ret = anarchy_ring_start(adev, &adev->rx_ring, false);
+    if (ret)
+        goto stop_tx;
+
+    /* Resume performance monitoring */
+    ret = anarchy_perf_start(adev);
+    if (ret)
+        goto stop_rx;
+
+    adev->flags &= ~ANARCHY_DEVICE_FLAG_SUSPENDED;
+    mutex_unlock(&adev->lock);
+    return 0;
+
+stop_rx:
+    anarchy_ring_stop(adev, &adev->rx_ring);
+stop_tx:
+    anarchy_ring_stop(adev, &adev->tx_ring);
+disable_pcie:
+    anarchy_pcie_disable(adev);
+unlock:
+    mutex_unlock(&adev->lock);
     return ret;
 }

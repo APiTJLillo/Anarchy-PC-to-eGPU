@@ -12,6 +12,10 @@
 #include "include/thermal.h"
 #include "thunderbolt.h"
 
+/* Performance monitoring function declarations */
+extern int init_performance_monitoring(struct anarchy_device *adev);
+extern void cleanup_performance_monitoring(struct anarchy_device *adev);
+
 /* Forward declarations */
 extern int power_limit;
 extern int num_dma_channels;
@@ -34,18 +38,17 @@ static int anarchy_service_probe(struct tb_service *svc, const struct tb_service
     adev->service = svc;
     
     /* Set power configuration */
-    adev->power.power_limit = power_limit;
-    adev->power.current_power = 0;
-    adev->power.fan_speed = FAN_SPEED_DEFAULT;
+    adev->power_profile.power_limit = power_limit;
+    adev->power_profile.fan_speed = FAN_SPEED_DEFAULT;
+    adev->power_profile.dynamic_control = true;
     
-    /* Set device capabilities */
+    /* Set PCIe configuration */
+    adev->pcie_state.link_speed = ANARCHY_PCIE_GEN4;
+    adev->pcie_state.link_width = ANARCHY_PCIE_x8;
     adev->dma_channels = num_dma_channels;
-    adev->max_lanes = ANARCHY_PCIE_x8;  /* x8 for TB4/USB4 */
-    adev->max_speed = ANARCHY_PCIE_GEN4; /* PCIe Gen4 */
     
-    /* Configure memory */
+    /* Configure memory mapping */
     adev->mmio_size = MMIO_SIZE;
-    adev->vram_size = VRAM_SIZE;
     
     /* Configure GPU emulation */
     ret = anarchy_gpu_emu_init(adev);

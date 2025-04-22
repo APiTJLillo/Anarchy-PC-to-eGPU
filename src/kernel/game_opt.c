@@ -1,91 +1,106 @@
-#include <linux/module.h>
-#include "include/gpu_ids.h"
-#include "include/gpu_config.h"
-#include "include/memory_mgmt.h"
+#include <linux/kernel.h>
+#include <linux/device.h>
+#include <linux/string.h>
+#include "include/anarchy_device.h"
+#include "include/game_opt.h"
 #include "include/command_proc.h"
+#include "include/gpu_power.h"
+#include "include/dma.h"
+#include "include/game_compat_types.h"
+#include "include/game_compat.h"
 
-/* Game detection and optimization */
-struct game_profile {
-    const char *name;
-    const char *exe_name;
-    u32 optimization_flags;
-    struct {
-        u32 power_limit;
-        u32 texture_cache;
-        u32 command_batch;
-        bool low_latency;
-    } settings;
-};
+/* Default power limit for games */
+#define DEFAULT_POWER_LIMIT 175
 
-/* Known game profiles */
-static const struct game_profile known_games[] = {
+/* Game optimization profiles */
+static const struct game_profile game_profiles[] = {
     {
-        .name = "WRC2",
-        .exe_name = "wrc2.exe",
+        .name = "steam",
         .optimization_flags = GAME_COMPAT_STEAM,
-        .settings = {
-            .power_limit = 175,      /* Default TGP */
-            .texture_cache = 512,    /* 512MB texture cache */
-            .command_batch = 512,    /* Large command batches */
-            .low_latency = true,
-        }
+        .power_limit = 200,
+        .dma_channels = 8,
+        .low_latency = true
     },
     {
-        .name = "Overwatch",
-        .exe_name = "overwatch.exe",
+        .name = "blizzard",
         .optimization_flags = GAME_COMPAT_BLIZZARD,
-        .settings = {
-            .power_limit = 165,      /* Slightly lower TGP */
-            .texture_cache = 256,    /* 256MB texture cache */
-            .command_batch = 256,    /* Standard batching */
-            .low_latency = true,
-        }
+        .power_limit = 175,
+        .dma_channels = 6,
+        .low_latency = false
     },
     {
-        .name = "EA Sports FC 24",
-        .exe_name = "fc24.exe",
+        .name = "ea",
         .optimization_flags = GAME_COMPAT_EA,
-        .settings = {
-            .power_limit = 175,      /* Default TGP */
-            .texture_cache = 384,    /* 384MB texture cache */
-            .command_batch = 384,    /* Larger batches */
-            .low_latency = true,
-        }
+        .power_limit = 150,
+        .dma_channels = 4,
+        .low_latency = true
     }
 };
 
-/* Apply game-specific optimizations */
-int anarchy_optimize_for_game(struct anarchy_device *adev, const char *game_name)
+const struct game_profile *find_game_profile(const char *game_name)
 {
-    const struct game_profile *profile = NULL;
     int i;
 
-    /* Find matching game profile */
-    for (i = 0; i < ARRAY_SIZE(known_games); i++) {
-        if (strstr(game_name, known_games[i].exe_name)) {
-            profile = &known_games[i];
-            break;
-        }
+    if (!game_name)
+        return NULL;
+
+    for (i = 0; i < ARRAY_SIZE(game_profiles); i++) {
+        if (strcasecmp(game_profiles[i].name, game_name) == 0)
+            return &game_profiles[i];
     }
 
-    if (!profile) {
-        /* Unknown game - use balanced defaults */
-        anarchy_gpu_set_power_limit(adev, DEFAULT_POWER_LIMIT);
-        return 0;
+    /* Return default profile if no match found */
+    return &game_profiles[0];
+}
+
+int apply_game_profile(struct anarchy_device *adev, const struct game_profile *profile)
+{
+    int ret;
+
+    if (!adev || !profile)
+        return -EINVAL;
+
+    /* Apply power limit */
+    ret = anarchy_gpu_set_power_limit(adev, profile->power_limit);
+    if (ret)
+        return ret;
+
+    /* Configure DMA channels */
+    ret = anarchy_dma_set_channel_priority(adev, 0, PRIORITY_HIGH);
+    if (ret)
+        return ret;
+
+    /* Apply memory optimizations if needed */
+    if (profile->low_latency && adev->compat_layer) {
+        struct game_memory_region *region = adev->compat_layer->texture_region;
+        if (region)
+            region->flags |= REGION_FLAG_LOWLATENCY;
     }
 
-    /* Apply profile settings */
-    anarchy_gpu_set_power_limit(adev, profile->settings.power_limit);
-    optimize_command_processing(adev, profile->name);
-    anarchy_dma_configure_for_game(adev, profile->name);
-    
-    /* Configure memory regions */
-    struct game_memory_region *texture_region = adev->compat_layer->texture_region;
-    if (texture_region) {
-        texture_region->size = profile->settings.texture_cache * 1024 * 1024;
-        texture_region->flags |= REGION_FLAG_STREAMING;
-    }
-
-    dev_info(adev->dev, "Applied optimizations for %s\n", profile->name);
+    dev_info(&adev->dev, "Applied game profile: %s\n", profile->name);
     return 0;
 }
+
+int anarchy_optimize_for_game(struct anarchy_device *adev, const char *game_name)
+{
+    const struct game_profile *profile;
+    int ret;
+
+    profile = find_game_profile(game_name);
+    if (!profile)
+        return -EINVAL;
+
+    ret = apply_game_profile(adev, profile);
+    if (ret)
+        return ret;
+
+    /* Set up load based optimization */
+    optimize_command_processing(adev, profile->low_latency ? 80 : 50);
+
+    dev_info(&adev->dev, "Game optimization complete for %s\n", game_name);
+    return 0;
+}
+
+EXPORT_SYMBOL_GPL(anarchy_optimize_for_game);
+EXPORT_SYMBOL_GPL(find_game_profile);
+EXPORT_SYMBOL_GPL(apply_game_profile);

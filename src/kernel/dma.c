@@ -1,59 +1,72 @@
 #include <linux/module.h>
 #include <linux/dma-mapping.h>
-#include "include/dma_config.h"
-#include "include/gpu_emu.h"
+#include "include/anarchy_device.h"
+#include "include/dma.h"
+#include "include/command_types.h"
 
-int anarchy_dma_init_gaming(struct anarchy_device *adev)
+int anarchy_dma_transfer(struct anarchy_device *adev, void *data, size_t size)
 {
-    /* Initialize with gaming-optimized settings */
-    adev->dma_config = gaming_dma_config;
-    
-    /* Set up DMA ring buffers with optimal sizes */
-    if (anarchy_ring_init(adev, &adev->tx_ring) ||
-        anarchy_ring_init(adev, &adev->rx_ring)) {
+    dma_addr_t dma_addr;
+    int ret = 0;
+
+    if (!adev || !data || !size)
+        return -EINVAL;
+
+    /* Map the data for DMA */
+    dma_addr = dma_map_single(&adev->dev, data, size, DMA_TO_DEVICE);
+    if (dma_mapping_error(&adev->dev, dma_addr)) {
+        dev_err(&adev->dev, "Failed to map DMA buffer\n");
         return -ENOMEM;
     }
 
-    /* Configure DMA mappings for VRAM access */
-    if (!dma_set_mask_and_coherent(&adev->dev, DMA_BIT_MASK(64))) {
-        dev_err(&adev->dev, "64-bit DMA not available\n");
-        return -EINVAL;
+    /* TODO: Implement actual DMA transfer using PCIe registers */
+    /* For now just simulate success */
+
+    dma_unmap_single(&adev->dev, dma_addr, size, DMA_TO_DEVICE);
+    return ret;
+}
+
+int anarchy_dma_transfer_priority(struct anarchy_device *adev, void *data,
+                                size_t size, enum dma_priority priority)
+{
+    int channel;
+    int ret;
+
+    /* Select DMA channel based on priority */
+    switch (priority) {
+    case PRIORITY_HIGH:
+        channel = 0;  /* Highest priority channel */
+        break;
+    case PRIORITY_TEXTURE:
+        channel = 1;  /* Dedicated texture channel */
+        break;
+    case PRIORITY_NORMAL:
+        channel = 2;  /* Normal priority channel */
+        break;
+    default:
+        channel = 3;  /* Low priority channel */
+        break;
     }
 
-    /* Set up streaming DMA for textures */
-    adev->tx_ring.streaming = true;
-    adev->tx_ring.chunk_size = TRANSFER_CHUNK_SIZE;
-    adev->tx_ring.max_inflight = MAX_INFLIGHT_TRANSFERS;
+    /* Set channel priority */
+    ret = anarchy_dma_set_channel_priority(adev, channel, priority);
+    if (ret)
+        return ret;
 
+    /* Perform transfer */
+    return anarchy_dma_transfer(adev, data, size);
+}
+
+int anarchy_dma_set_channel_priority(struct anarchy_device *adev, int channel,
+                                   enum dma_priority priority)
+{
+    if (!adev || channel >= adev->dma_channels)
+        return -EINVAL;
+
+    /* TODO: Implement priority configuration in hardware */
     return 0;
 }
 
-int anarchy_dma_configure_for_game(struct anarchy_device *adev, const char *game_name)
-{
-    /* Configure optimal DMA settings based on game profile */
-    if (strstr(game_name, "WRC2")) {
-        /* WRC2 specific optimizations */
-        adev->dma_config.prefetch_size = 16384; /* 16MB prefetch for better texture streaming */
-        adev->dma_config.batch_size = 512;      /* Larger batches for texture loads */
-    } else {
-        /* Default gaming configuration */
-        adev->dma_config = gaming_dma_config;
-    }
-
-    return anarchy_dma_apply_config(adev);
-}
-
-void anarchy_dma_optimize_transfers(struct anarchy_device *adev)
-{
-    /* Enable adaptive transfer size based on workload */
-    adev->tx_ring.adaptive_size = true;
-    adev->rx_ring.adaptive_size = true;
-
-    /* Set up priority-based transfers */
-    adev->tx_ring.priority_levels = 4;
-    adev->tx_ring.texture_priority = PRIORITY_TEXTURE;
-    
-    /* Configure memory access patterns */
-    adev->tx_ring.access_pattern = ACCESS_PATTERN_STREAMING;
-    adev->rx_ring.access_pattern = ACCESS_PATTERN_SEQUENTIAL;
-}
+EXPORT_SYMBOL_GPL(anarchy_dma_transfer);
+EXPORT_SYMBOL_GPL(anarchy_dma_transfer_priority);
+EXPORT_SYMBOL_GPL(anarchy_dma_set_channel_priority);

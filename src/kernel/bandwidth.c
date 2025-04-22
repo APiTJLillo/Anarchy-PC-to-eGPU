@@ -1,5 +1,8 @@
 #include <linux/module.h>
+#include <linux/workqueue.h>
 #include "include/common.h"
+#include "include/pcie_types.h"
+#include "include/perf_monitor.h"
 
 /* TB4/USB4 bandwidth configuration */
 #define TB4_MAX_BANDWIDTH    40000  /* 40 Gbps max */
@@ -11,42 +14,103 @@ struct bandwidth_config {
     u32 required_bandwidth;
     u32 available_bandwidth;
     bool bandwidth_critical;
+    struct workqueue_struct *wq;
+    struct delayed_work update_work;
+    spinlock_t lock;
+    unsigned long last_update;
 };
 
-static void monitor_bandwidth(struct anarchy_device *adev)
+/* Get current PCIe bandwidth usage */
+u32 anarchy_pcie_get_bandwidth_usage(struct anarchy_device *adev)
 {
     struct bandwidth_config *bw = &adev->bandwidth;
+    unsigned long flags;
+    u32 usage;
     
-    /* Check current bandwidth availability */
+    spin_lock_irqsave(&bw->lock, flags);
+    usage = bw->current_bandwidth;
+    spin_unlock_irqrestore(&bw->lock, flags);
+    
+    return usage;
+}
+
+static void bandwidth_update_work(struct work_struct *work)
+{
+    struct bandwidth_config *bw = container_of(to_delayed_work(work),
+                                             struct bandwidth_config,
+                                             update_work);
+    struct anarchy_device *adev = container_of(bw, struct anarchy_device,
+                                             bandwidth);
+    unsigned long flags;
+    u32 rx_bandwidth, tx_bandwidth;
+    
+    /* Read PCIe counters */
+    rx_bandwidth = readl(adev->mmio_base + PCIE_RX_COUNTER);
+    tx_bandwidth = readl(adev->mmio_base + PCIE_TX_COUNTER);
+    
+    spin_lock_irqsave(&bw->lock, flags);
+    bw->current_bandwidth = rx_bandwidth + tx_bandwidth;
     bw->available_bandwidth = tb_port_get_bandwidth(adev->tb_port);
     
     if (bw->available_bandwidth < MIN_GAMING_BANDWIDTH) {
-        dev_warn(&adev->dev, "Low bandwidth detected (%d Gbps), gaming performance may be affected\n",
-                bw->available_bandwidth / 1000);
+        if (!bw->bandwidth_critical) {
+            dev_warn(&adev->dev, "Low bandwidth detected (%d Gbps)\n",
+                    bw->available_bandwidth / 1000);
+            bw->bandwidth_critical = true;
+        }
         
-        /* Apply bandwidth optimization */
+        /* Apply optimizations */
         anarchy_dma_optimize_transfers(adev);
-        
-        /* Enable texture compression */
         if (!adev->texture_compression_enabled) {
             dev_info(&adev->dev, "Enabling texture compression\n");
             adev->texture_compression_enabled = true;
         }
+    } else if (bw->bandwidth_critical && 
+               bw->available_bandwidth >= MIN_GAMING_BANDWIDTH) {
+        dev_info(&adev->dev, "Bandwidth restored to normal levels\n");
+        bw->bandwidth_critical = false;
     }
+    
+    bw->last_update = jiffies;
+    spin_unlock_irqrestore(&bw->lock, flags);
+    
+    /* Schedule next update */
+    schedule_delayed_work(&bw->update_work, 
+                         msecs_to_jiffies(BANDWIDTH_UPDATE_INTERVAL));
 }
 
 /* Initialize bandwidth monitoring */
 int init_bandwidth_monitoring(struct anarchy_device *adev)
 {
-    struct bandwidth_config *bw;
+    struct bandwidth_config *bw = &adev->bandwidth;
     
-    bw = kzalloc(sizeof(*bw), GFP_KERNEL);
-    if (!bw)
-        return -ENOMEM;
-        
+    /* Initialize bandwidth monitoring state */
     bw->required_bandwidth = PCIE_X8_BANDWIDTH;
-    adev->bandwidth = *bw;
-    kfree(bw);
+    bw->current_bandwidth = 0;
+    bw->available_bandwidth = TB4_MAX_BANDWIDTH;
+    bw->bandwidth_critical = false;
+    
+    /* Initialize synchronization */
+    spin_lock_init(&bw->lock);
+    
+    /* Initialize work queue */
+    INIT_DELAYED_WORK(&bw->update_work, bandwidth_update_work);
+    
+    /* Start monitoring */
+    schedule_delayed_work(&bw->update_work,
+                         msecs_to_jiffies(BANDWIDTH_UPDATE_INTERVAL));
     
     return 0;
 }
+
+/* Cleanup bandwidth monitoring */
+void cleanup_bandwidth_monitoring(struct anarchy_device *adev)
+{
+    struct bandwidth_config *bw = &adev->bandwidth;
+    
+    cancel_delayed_work_sync(&bw->update_work);
+}
+
+EXPORT_SYMBOL_GPL(anarchy_pcie_get_bandwidth_usage);
+EXPORT_SYMBOL_GPL(init_bandwidth_monitoring);
+EXPORT_SYMBOL_GPL(cleanup_bandwidth_monitoring);

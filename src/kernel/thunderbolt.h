@@ -5,18 +5,14 @@
 #include "forward.h"
 #include "anarchy_device.h"
 
-/* Thunderbolt service protocol configuration */
-#define TBSVC_MATCH_PROTOCOL_KEY       BIT(0)
-#define TBSVC_MATCH_PROTOCOL_ID        BIT(1)
-#define TBSVC_MATCH_PROTOCOL_VERSION   BIT(2)
+/* Anarchy service identification */
+#define ANARCHY_SERVICE_ID             0x44  /* Use single byte value */
+#define ANARCHY_SERVICE_VERSION        0x01
 
+/* Service matching flags using kernel definitions */
 #define ANARCHY_SERVICE_MATCH_FLAGS (TBSVC_MATCH_PROTOCOL_KEY | \
                                    TBSVC_MATCH_PROTOCOL_ID | \
                                    TBSVC_MATCH_PROTOCOL_VERSION)
-
-#define ANARCHY_SERVICE_PROTOCOL_KEY    0x4E574F44  /* "DOWN" */
-#define ANARCHY_SERVICE_PROTOCOL_ID     0x01
-#define ANARCHY_PROTOCOL_VERSION        0x01
 
 /* Service configuration */
 struct tb_service_config {

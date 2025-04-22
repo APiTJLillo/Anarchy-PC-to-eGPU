@@ -1,7 +1,14 @@
 #include <linux/module.h>
 #include <linux/workqueue.h>
+#include <linux/io.h>
+#include <linux/delay.h>
+#include "include/perf_monitor.h"
+#include "include/anarchy_device.h"
 #include "include/gpu_config.h"
-#include "include/gpu_emu.h"
+#include "include/pcie_state.h"
+#include "include/perf_regs.h"
+#include "include/gpu_power.h"
+#include "include/pcie_mon.h"
 
 /* Performance monitoring thresholds */
 #define PERF_UPDATE_INTERVAL_MS   1000    /* 1 second update interval */
@@ -10,84 +17,154 @@
 #define POWER_WARNING_THRESHOLD   200     /* 200W warning threshold */
 #define UTILIZATION_THRESHOLD     90      /* 90% GPU utilization */
 
-struct perf_monitor {
-    struct workqueue_struct *wq;
-    struct delayed_work work;
-    struct {
-        u32 temperature;
-        u32 power_draw;
-        u32 gpu_util;
-        u32 vram_util;
-        u32 pcie_bandwidth;
-    } stats;
-    bool throttling;
-    spinlock_t lock;
-};
-
-static void update_performance(struct work_struct *work)
+static void update_performance_stats(struct anarchy_device *adev, struct perf_state *state)
 {
-    struct perf_monitor *pm = container_of(to_delayed_work(work),
-                                         struct perf_monitor, work);
-    struct anarchy_device *adev = container_of(pm, struct anarchy_device,
-                                             perf_monitor);
+    if (!adev || !state)
+        return;
+
+    /* Read current state from hardware registers */
+    state->gpu_clock = readl(adev->mmio_base + GPU_CLOCK_OFFSET) / 1000; /* Convert to MHz */
+    state->mem_clock = readl(adev->mmio_base + MEM_CLOCK_OFFSET) / 1000;
+    state->power_draw = readl(adev->mmio_base + POWER_OFFSET) / 1000;    /* Convert to watts */
+    state->temperature = readl(adev->mmio_base + TEMP_OFFSET);
+    state->fan_speed = readl(adev->mmio_base + FAN_STATUS_OFFSET);
+    state->gpu_util = readl(adev->mmio_base + GPU_UTIL_OFFSET);
+    state->mem_util = readl(adev->mmio_base + MEM_UTIL_OFFSET);
+    state->vram_used = readl(adev->mmio_base + VRAM_USED_OFFSET) / 1024; /* Convert to MB */
+
+    /* Get PCIe bandwidth utilization */
+    state->pcie_util = anarchy_pcie_get_bandwidth_usage(adev);
+}
+
+static void perf_monitor_work(struct work_struct *work)
+{
+    struct perf_monitor *monitor = container_of(to_delayed_work(work),
+                                              struct perf_monitor,
+                                              update_work);
+    struct anarchy_device *adev = monitor->adev;
+    struct perf_state state;
     unsigned long flags;
     
-    spin_lock_irqsave(&pm->lock, flags);
-
-    /* Read current stats */
-    pm->stats.temperature = readl(adev->mmio_base + TEMP_OFFSET);
-    pm->stats.power_draw = readl(adev->mmio_base + POWER_OFFSET);
-    pm->stats.gpu_util = readl(adev->mmio_base + UTIL_OFFSET);
-    pm->stats.vram_util = readl(adev->mmio_base + VRAM_UTIL_OFFSET);
-    pm->stats.pcie_bandwidth = readl(adev->mmio_base + PCIE_BW_OFFSET);
-
-    /* Check for thermal throttling */
-    if (pm->stats.temperature >= TEMP_CRITICAL_THRESHOLD) {
-        anarchy_gpu_set_power_limit(adev, MIN_POWER_LIMIT);
-        pm->throttling = true;
-    } else if (pm->stats.temperature <= TEMP_WARNING_THRESHOLD && pm->throttling) {
-        /* Recover from throttling */
-        anarchy_gpu_set_power_limit(adev, adev->power_limit);
-        pm->throttling = false;
+    if (!monitor->enabled)
+        return;
+        
+    /* Update performance metrics */
+    update_performance_stats(adev, &state);
+    
+    spin_lock_irqsave(&monitor->lock, flags);
+    monitor->current_state = state;
+    
+    /* Check thermal throttling */
+    if (state.temperature >= TEMP_CRITICAL_THRESHOLD) {
+        anarchy_power_set_power_limit(adev, GPU_POWER_LIMIT_MIN);
+    } else if (state.temperature <= TEMP_WARNING_THRESHOLD) {
+        /* Restore normal power limit */
+        anarchy_power_set_power_limit(adev, adev->power_profile.power_limit);
     }
-
-    /* Dynamic optimization based on workload */
-    if (pm->stats.gpu_util > UTILIZATION_THRESHOLD) {
-        /* Heavy gaming workload - optimize for performance */
-        optimize_command_processing(adev, NULL);
-        anarchy_dma_optimize_transfers(adev);
+    
+    spin_unlock_irqrestore(&monitor->lock, flags);
+    
+    /* Schedule next update if still enabled */
+    if (monitor->enabled) {
+        schedule_delayed_work(&monitor->update_work,
+                            msecs_to_jiffies(monitor->update_interval));
     }
+}
 
-    spin_unlock_irqrestore(&pm->lock, flags);
+/* Initialize performance monitoring */
+int anarchy_perf_init(struct anarchy_device *adev)
+{
+    struct perf_monitor *monitor;
+    
+    if (!adev)
+        return -EINVAL;
+        
+    monitor = &adev->perf_monitor;
+    monitor->adev = adev;
+    monitor->enabled = false;
+    monitor->update_interval = PERF_UPDATE_INTERVAL_MS;
+    
+    /* Initialize work queue */
+    INIT_DELAYED_WORK(&monitor->update_work, perf_monitor_work);
+    spin_lock_init(&monitor->lock);
+    
+    return 0;
+}
 
-    /* Schedule next update */
-    queue_delayed_work(pm->wq, &pm->work,
-                      msecs_to_jiffies(PERF_UPDATE_INTERVAL_MS));
+/* Start performance monitoring */
+int anarchy_perf_start(struct anarchy_device *adev)
+{
+    struct perf_monitor *monitor;
+    
+    if (!adev)
+        return -EINVAL;
+        
+    monitor = &adev->perf_monitor;
+    monitor->enabled = true;
+    
+    /* Schedule first update */
+    return schedule_delayed_work(&monitor->update_work,
+                               msecs_to_jiffies(monitor->update_interval));
+}
+
+/* Stop performance monitoring */
+void anarchy_perf_stop(struct anarchy_device *adev)
+{
+    struct perf_monitor *monitor;
+    
+    if (!adev)
+        return;
+        
+    monitor = &adev->perf_monitor;
+    monitor->enabled = false;
+    cancel_delayed_work_sync(&monitor->update_work);
+}
+
+/* Get current performance state */
+int anarchy_perf_get_state(struct anarchy_device *adev, struct perf_state *state)
+{
+    struct perf_monitor *monitor;
+    unsigned long flags;
+    
+    if (!adev || !state)
+        return -EINVAL;
+        
+    monitor = &adev->perf_monitor;
+    
+    spin_lock_irqsave(&monitor->lock, flags);
+    *state = monitor->current_state;
+    spin_unlock_irqrestore(&monitor->lock, flags);
+    
+    return 0;
 }
 
 int init_performance_monitoring(struct anarchy_device *adev)
 {
-    struct perf_monitor *pm;
+    struct perf_monitor *monitor = &adev->perf_monitor;
+    int ret;
 
-    pm = kzalloc(sizeof(*pm), GFP_KERNEL);
-    if (!pm)
-        return -ENOMEM;
+    ret = anarchy_perf_init(adev);
+    if (ret)
+        return ret;
 
-    pm->wq = create_singlethread_workqueue("anarchy_perf");
-    if (!pm->wq) {
-        kfree(pm);
-        return -ENOMEM;
+    ret = anarchy_perf_start(adev);
+    if (ret) {
+        anarchy_perf_exit(adev);
+        return ret;
     }
-
-    INIT_DELAYED_WORK(&pm->work, update_performance);
-    spin_lock_init(&pm->lock);
-    pm->throttling = false;
-
-    adev->perf_monitor = pm;
-
-    /* Start monitoring */
-    queue_delayed_work(pm->wq, &pm->work,
-                      msecs_to_jiffies(PERF_UPDATE_INTERVAL_MS));
 
     return 0;
 }
+
+void cleanup_performance_monitoring(struct anarchy_device *adev)
+{
+    anarchy_perf_stop(adev);
+    anarchy_perf_exit(adev);
+}
+
+EXPORT_SYMBOL_GPL(anarchy_perf_init);
+EXPORT_SYMBOL_GPL(anarchy_perf_start);
+EXPORT_SYMBOL_GPL(anarchy_perf_stop);
+EXPORT_SYMBOL_GPL(anarchy_perf_get_state);
+EXPORT_SYMBOL_GPL(init_performance_monitoring);
+EXPORT_SYMBOL_GPL(cleanup_performance_monitoring);

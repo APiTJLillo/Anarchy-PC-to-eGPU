@@ -44,19 +44,10 @@ struct anarchy_ring {
     /* Statistics */
     atomic_t bytes_transferred;
     atomic_t transfer_errors;
-};
-
-/* Ring management functions */
-int anarchy_ring_init(struct anarchy_device *adev, struct anarchy_ring *ring);
-void anarchy_ring_cleanup(struct anarchy_ring *ring);
-int anarchy_ring_start(struct anarchy_ring *ring);
-void anarchy_ring_stop(struct anarchy_ring *ring);
-int anarchy_ring_submit(struct anarchy_ring *ring, struct anarchy_transfer *transfer);
-
-#endif /* ANARCHY_RING_H */
     atomic_t error_count;
     atomic_t pending;
-    spinlock_t lock;
+    
+    /* Wait queue */
     wait_queue_head_t wait;
     
     /* Transfer state */
@@ -73,17 +64,17 @@ int anarchy_ring_submit(struct anarchy_ring *ring, struct anarchy_transfer *tran
     } frames[32];
 };
 
-/* Ring lifecycle - external interface */
+/* Ring lifecycle */
 int anarchy_ring_init(struct anarchy_device *adev, struct anarchy_ring *ring);
 int anarchy_ring_start(struct anarchy_device *adev, struct anarchy_ring *ring, bool tx);
 void anarchy_ring_stop(struct anarchy_device *adev, struct anarchy_ring *ring);
 void anarchy_ring_cleanup(struct anarchy_device *adev, struct anarchy_ring *ring);
 
-/* Ring operations - internal interface */
+/* Ring operations */
 void anarchy_ring_error(struct anarchy_device *adev, struct anarchy_ring *ring);
 int anarchy_ring_transfer(struct anarchy_device *adev, struct anarchy_ring *ring, 
                          struct anarchy_transfer *transfer);
-void anarchy_ring_complete(struct anarchy_device *adev, struct anarchy_ring *ring,
-                         struct anarchy_transfer *transfer);
+void anarchy_ring_complete(struct anarchy_device *adev, struct anarchy_ring *ring, 
+                          struct anarchy_transfer *transfer);
 
 #endif /* ANARCHY_RING_H */
