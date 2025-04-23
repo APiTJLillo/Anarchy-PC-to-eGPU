@@ -286,6 +286,7 @@ thermal.o: /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/thermal.c \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/perf_monitor.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/thermal.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/thermal_forward.h \
+ /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/gpu_config.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/anarchy_device.h \
  include/linux/pci.h include/linux/interrupt.h include/linux/irqreturn.h \
  include/linux/hardirq.h include/linux/context_tracking_state.h \

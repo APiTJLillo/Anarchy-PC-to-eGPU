@@ -307,8 +307,9 @@ dma_device.o: \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/pcie_types.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/ring.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/power_mgmt.h \
- /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/forward.h \
+ /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/types.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/perf_monitor.h \
+ /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/forward.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/thermal_forward.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/gpu_emu_forward.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/bandwidth.h \

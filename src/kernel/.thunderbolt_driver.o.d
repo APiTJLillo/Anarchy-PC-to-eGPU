@@ -267,17 +267,18 @@ thunderbolt_driver.o: \
  include/linux/moduleparam.h include/linux/rbtree_latch.h \
  include/linux/error-injection.h include/asm-generic/error-injection.h \
  arch/x86/include/asm/module.h include/asm-generic/module.h \
- arch/x86/include/asm/orc_types.h include/linux/thunderbolt.h \
- include/linux/device.h include/linux/dev_printk.h \
- include/linux/energy_model.h include/linux/sched/cpufreq.h \
- include/linux/sched/topology.h include/linux/sched/idle.h \
- include/linux/sched/sd_flags.h include/linux/ioport.h \
- include/linux/klist.h include/linux/pm.h include/linux/device/bus.h \
- include/linux/device/class.h include/linux/device/driver.h \
- arch/x86/include/asm/device.h include/linux/pm_wakeup.h \
- include/linux/mod_devicetable.h include/uapi/linux/mei.h \
- include/uapi/linux/mei_uuid.h include/linux/pci.h \
- include/linux/interrupt.h include/linux/irqreturn.h \
+ arch/x86/include/asm/orc_types.h include/linux/device.h \
+ include/linux/dev_printk.h include/linux/energy_model.h \
+ include/linux/sched/cpufreq.h include/linux/sched/topology.h \
+ include/linux/sched/idle.h include/linux/sched/sd_flags.h \
+ include/linux/ioport.h include/linux/klist.h include/linux/pm.h \
+ include/linux/device/bus.h include/linux/device/class.h \
+ include/linux/device/driver.h arch/x86/include/asm/device.h \
+ include/linux/pm_wakeup.h \
+ /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/thunderbolt_driver.h \
+ include/linux/thunderbolt.h include/linux/mod_devicetable.h \
+ include/uapi/linux/mei.h include/uapi/linux/mei_uuid.h \
+ include/linux/pci.h include/linux/interrupt.h include/linux/irqreturn.h \
  include/linux/hardirq.h include/linux/context_tracking_state.h \
  include/linux/ftrace_irq.h include/linux/vtime.h \
  arch/x86/include/asm/hardirq.h arch/x86/include/asm/irq.h \
@@ -296,19 +297,4 @@ thunderbolt_driver.o: \
  include/linux/pgtable.h include/linux/memremap.h include/linux/huge_mm.h \
  include/linux/vmstat.h include/linux/vm_event_item.h \
  arch/x86/include/asm/pci.h arch/x86/include/asm/memtype.h \
- include/linux/dma-mapping.h include/linux/dma-direction.h \
- /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/thunderbolt_driver.h \
- /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/service_probe.h \
- /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/anarchy_device.h \
- /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/anarchy_device_forward.h \
- /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/pcie_forward.h \
- /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/pcie_types.h \
- /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/ring.h \
- /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/power_mgmt.h \
- /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/forward.h \
- /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/perf_monitor.h \
- /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/thermal_forward.h \
- /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/gpu_emu_forward.h \
- /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/bandwidth.h \
- /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/bandwidth_config.h \
- /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/service_pm.h
+ include/linux/dma-mapping.h include/linux/dma-direction.h

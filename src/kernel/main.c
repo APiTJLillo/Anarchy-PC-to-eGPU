@@ -53,7 +53,7 @@ static const struct tb_service_id anarchy_service_table[] = {
 };
 
 /* Service driver structure */
-static struct tb_service_driver anarchy_service_driver = {
+struct tb_service_driver anarchy_service_driver = {
     .driver = {
         .name = "anarchy",
         .owner = THIS_MODULE,
@@ -62,6 +62,12 @@ static struct tb_service_driver anarchy_service_driver = {
     .remove = anarchy_service_remove,
     .id_table = anarchy_service_table,
 };
+EXPORT_SYMBOL_GPL(anarchy_service_driver);
+
+struct tb_service_driver *anarchy_thunderbolt_driver_get(void)
+{
+    return &anarchy_service_driver;
+}
 
 /* Shutdown callback for graceful device shutdown */
 static void anarchy_service_shutdown(struct device *dev)
@@ -93,7 +99,7 @@ static int __init anarchy_init(void)
         return ret;
     }
 
-    ret = tb_service_driver_register(&anarchy_thunderbolt_driver);
+    ret = tb_service_driver_register(&anarchy_service_driver);
     if (ret) {
         pr_err("Failed to register thunderbolt driver: %d\n", ret);
         anarchy_thunderbolt_cleanup();
@@ -105,7 +111,7 @@ static int __init anarchy_init(void)
 
 static void __exit anarchy_exit(void)
 {
-    tb_service_driver_unregister(&anarchy_thunderbolt_driver);
+    tb_service_driver_unregister(&anarchy_service_driver);
     anarchy_thunderbolt_cleanup();
 }
 

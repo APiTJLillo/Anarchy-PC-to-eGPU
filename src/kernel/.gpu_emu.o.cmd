@@ -1,4 +1,4 @@
-savedcmd_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/gpu_emu.o := gcc-14 -Wp,-MMD,/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/.gpu_emu.o.d -nostdinc -I./arch/x86/include -I./arch/x86/include/generated  -I./include -I./arch/x86/include/uapi -I./arch/x86/include/generated/uapi -I./include/uapi -I./include/generated/uapi -include ./include/linux/compiler-version.h -include ./include/linux/kconfig.h -I./ubuntu/include -include ./include/linux/compiler_types.h -D__KERNEL__ -fmacro-prefix-map=./= -std=gnu11 -fshort-wchar -funsigned-char -fno-common -fno-PIE -fno-strict-aliasing -mno-sse -mno-mmx -mno-sse2 -mno-3dnow -mno-avx -fcf-protection=none -m64 -falign-jumps=1 -falign-loops=1 -mno-80387 -mno-fp-ret-in-387 -mpreferred-stack-boundary=3 -mskip-rax-setup -mtune=generic -mno-red-zone -mcmodel=kernel -Wno-sign-compare -fno-asynchronous-unwind-tables -mindirect-branch=thunk-extern -mindirect-branch-register -mindirect-branch-cs-prefix -mfunction-return=thunk-extern -fno-jump-tables -mharden-sls=all -fpatchable-function-entry=16,16 -fno-delete-null-pointer-checks -O2 -fno-allow-store-data-races -fstack-protector-strong -fno-omit-frame-pointer -fno-optimize-sibling-calls -ftrivial-auto-var-init=zero -fno-stack-clash-protection -fzero-call-used-regs=used-gpr -pg -mrecord-mcount -mfentry -DCC_USING_FENTRY -fmin-function-alignment=16 -fstrict-flex-arrays=3 -fno-strict-overflow -fno-stack-check -fconserve-stack -Wall -Wundef -Werror=implicit-function-declaration -Werror=implicit-int -Werror=return-type -Werror=strict-prototypes -Wno-format-security -Wno-trigraphs -Wno-frame-address -Wno-address-of-packed-member -Wmissing-declarations -Wmissing-prototypes -Wframe-larger-than=1024 -Wno-main -Wno-dangling-pointer -Wvla -Wno-pointer-sign -Wcast-function-type -Wno-stringop-overflow -Wno-array-bounds -Wno-alloc-size-larger-than -Wimplicit-fallthrough=5 -Werror=date-time -Werror=incompatible-pointer-types -Werror=designated-init -Wenum-conversion -Wextra -Wunused -Wno-unused-but-set-variable -Wno-unused-const-variable -Wno-packed-not-aligned -Wno-format-overflow -Wno-format-truncation -Wno-stringop-truncation -Wno-override-init -Wno-missing-field-initializers -Wno-type-limits -Wno-shift-negative-value -Wno-maybe-uninitialized -Wno-sign-compare -Wno-unused-parameter -g -gdwarf-5 -DDEBUG -g -O1  -fsanitize=bounds-strict -fsanitize=shift -fsanitize=bool -fsanitize=enum  -fsanitize=signed-integer-overflow  -DMODULE  -DKBUILD_BASENAME='"gpu_emu"' -DKBUILD_MODNAME='"anarchy"' -D__KBUILD_MODNAME=kmod_anarchy -c -o /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/gpu_emu.o /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/gpu_emu.c   ; ./tools/objtool/objtool --hacks=jump_label --hacks=noinstr --hacks=skylake --retpoline --rethunk --sls --stackval --static-call --uaccess --prefix=16   --module /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/gpu_emu.o
+savedcmd_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/gpu_emu.o := gcc-14 -Wp,-MMD,/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/.gpu_emu.o.d -nostdinc -I./arch/x86/include -I./arch/x86/include/generated  -I./include -I./arch/x86/include/uapi -I./arch/x86/include/generated/uapi -I./include/uapi -I./include/generated/uapi -include ./include/linux/compiler-version.h -include ./include/linux/kconfig.h -I./ubuntu/include -include ./include/linux/compiler_types.h -D__KERNEL__ -fmacro-prefix-map=./= -std=gnu11 -fshort-wchar -funsigned-char -fno-common -fno-PIE -fno-strict-aliasing -mno-sse -mno-mmx -mno-sse2 -mno-3dnow -mno-avx -fcf-protection=none -m64 -falign-jumps=1 -falign-loops=1 -mno-80387 -mno-fp-ret-in-387 -mpreferred-stack-boundary=3 -mskip-rax-setup -mtune=generic -mno-red-zone -mcmodel=kernel -Wno-sign-compare -fno-asynchronous-unwind-tables -mindirect-branch=thunk-extern -mindirect-branch-register -mindirect-branch-cs-prefix -mfunction-return=thunk-extern -fno-jump-tables -mharden-sls=all -fpatchable-function-entry=16,16 -fno-delete-null-pointer-checks -O2 -fno-allow-store-data-races -fstack-protector-strong -fno-omit-frame-pointer -fno-optimize-sibling-calls -ftrivial-auto-var-init=zero -fno-stack-clash-protection -fzero-call-used-regs=used-gpr -pg -mrecord-mcount -mfentry -DCC_USING_FENTRY -fmin-function-alignment=16 -fstrict-flex-arrays=3 -fno-strict-overflow -fno-stack-check -fconserve-stack -Wall -Wundef -Werror=implicit-function-declaration -Werror=implicit-int -Werror=return-type -Werror=strict-prototypes -Wno-format-security -Wno-trigraphs -Wno-frame-address -Wno-address-of-packed-member -Wmissing-declarations -Wmissing-prototypes -Wframe-larger-than=1024 -Wno-main -Wno-dangling-pointer -Wvla -Wno-pointer-sign -Wcast-function-type -Wno-stringop-overflow -Wno-array-bounds -Wno-alloc-size-larger-than -Wimplicit-fallthrough=5 -Werror=date-time -Werror=incompatible-pointer-types -Werror=designated-init -Wenum-conversion -Wextra -Wunused -Wno-unused-but-set-variable -Wno-unused-const-variable -Wno-packed-not-aligned -Wno-format-overflow -Wno-format-truncation -Wno-stringop-truncation -Wno-override-init -Wno-missing-field-initializers -Wno-type-limits -Wno-shift-negative-value -Wno-maybe-uninitialized -Wno-sign-compare -Wno-unused-parameter -g -gdwarf-5 -DDEBUG -g -O1 -DCONFIG_DEBUG_INFO_BTF=1  -fsanitize=bounds-strict -fsanitize=shift -fsanitize=bool -fsanitize=enum  -fsanitize=signed-integer-overflow  -DMODULE  -DKBUILD_BASENAME='"gpu_emu"' -DKBUILD_MODNAME='"anarchy"' -D__KBUILD_MODNAME=kmod_anarchy -c -o /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/gpu_emu.o /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/gpu_emu.c   ; ./tools/objtool/objtool --hacks=jump_label --hacks=noinstr --hacks=skylake --retpoline --rethunk --sls --stackval --static-call --uaccess --prefix=16   --module /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/gpu_emu.o
 
 source_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/gpu_emu.o := /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/gpu_emu.c
 
@@ -1236,8 +1236,9 @@ deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/gpu_emu.o := \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/pcie_types.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/ring.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/power_mgmt.h \
-  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/forward.h \
+  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/types.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/perf_monitor.h \
+  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/forward.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/thermal_forward.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/gpu_emu_forward.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/bandwidth.h \
@@ -1249,20 +1250,20 @@ deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/gpu_emu.o := \
 $(deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/gpu_emu.o):
 
 /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/gpu_emu.o: $(wildcard ./tools/objtool/objtool)
-#SYMVER anarchy_gpu_get_clock 0x7644e8c3
-#SYMVER anarchy_gpu_get_mem_clock 0xc2565ad4
-#SYMVER anarchy_gpu_get_power 0x20bb922b
-#SYMVER anarchy_gpu_get_temp 0x262dd396
-#SYMVER anarchy_gpu_get_fan 0x4b30a6dc
-#SYMVER anarchy_gpu_get_util 0x838c5aff
-#SYMVER anarchy_gpu_get_mem_util 0x9a807a03
-#SYMVER anarchy_gpu_get_vram_used 0x5bd2e74c
-#SYMVER anarchy_gpu_set_fan_speed 0x8edee083
-#SYMVER anarchy_gpu_emu_set_power_limit 0xd1d53a6a
-#SYMVER anarchy_gpu_set_clocks 0x630d7e37
-#SYMVER anarchy_gpu_emu_init 0x8e147acf
-#SYMVER anarchy_gpu_emu_exit 0xbe41f600
-#SYMVER anarchy_gpu_emu_start 0x49ff82a4
-#SYMVER anarchy_gpu_emu_stop 0x6471c88a
-#SYMVER anarchy_gpu_emu_handle_mmio 0x07d5f352
-#SYMVER anarchy_gpu_emu_map_memory 0xaab33980
+#SYMVER anarchy_gpu_get_clock 0x8db12098
+#SYMVER anarchy_gpu_get_mem_clock 0xc562d6cf
+#SYMVER anarchy_gpu_get_power 0x694b351b
+#SYMVER anarchy_gpu_get_temp 0x549550b4
+#SYMVER anarchy_gpu_get_fan 0x0403c53f
+#SYMVER anarchy_gpu_get_util 0xf3ea6521
+#SYMVER anarchy_gpu_get_mem_util 0x922a7986
+#SYMVER anarchy_gpu_get_vram_used 0x868d3e38
+#SYMVER anarchy_gpu_set_fan_speed 0x07ec371c
+#SYMVER anarchy_gpu_emu_set_power_limit 0x111d0769
+#SYMVER anarchy_gpu_set_clocks 0x73471a0e
+#SYMVER anarchy_gpu_emu_init 0x64204ccd
+#SYMVER anarchy_gpu_emu_exit 0xa9bc2cbc
+#SYMVER anarchy_gpu_emu_start 0x698b2d18
+#SYMVER anarchy_gpu_emu_stop 0xab4eb161
+#SYMVER anarchy_gpu_emu_handle_mmio 0x9ef5cf03
+#SYMVER anarchy_gpu_emu_map_memory 0x46d1d07a

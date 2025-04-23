@@ -304,15 +304,15 @@ service_probe.o: \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/pcie_types.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/ring.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/power_mgmt.h \
- /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/forward.h \
+ /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/types.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/perf_monitor.h \
+ /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/forward.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/thermal_forward.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/gpu_emu_forward.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/bandwidth.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/bandwidth_config.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/anarchy_device.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/common.h \
- /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/types.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/gpu_config.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/gpu_emu.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/pcie_state.h \
@@ -324,6 +324,7 @@ service_probe.o: \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/dma_types.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/usb4_config.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/thermal.h \
+ /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/gpu_config.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/pcie.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/common.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/anarchy_driver.h \

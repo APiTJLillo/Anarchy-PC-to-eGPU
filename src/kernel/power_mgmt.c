@@ -9,13 +9,7 @@
 #include "include/power_mgmt.h"
 #include "include/gpu_offsets.h"
 
-/* Use power limits from gpu_power.h */
-#ifndef GPU_POWER_LIMIT_MIN
-#define GPU_POWER_LIMIT_MIN  150
-#endif
-#ifndef GPU_POWER_LIMIT_MAX
-#define GPU_POWER_LIMIT_MAX  250
-#endif
+/* Power limits are defined in power_mgmt.h */
 
 /* Clock limits in MHz */
 #define MIN_GPU_CLOCK        300

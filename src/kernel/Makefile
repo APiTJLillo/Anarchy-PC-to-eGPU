@@ -9,10 +9,17 @@ anarchy-objs := main.o thunderbolt.o thunderbolt_bus.o thunderbolt_driver.o \
                 pcie.o device.o gpu_emu.o perf_monitor.o service_probe.o \
                 gpu_power.o service_pm.o
 
-EXTRA_CFLAGS += -DDEBUG -g -O1
+EXTRA_CFLAGS += -DDEBUG -g -O1 -DCONFIG_DEBUG_INFO_BTF=1
 
-all:
-	$(MAKE) -C $(KDIR) M=$(PWD) modules CONFIG_DEBUG_INFO=y V=1
+all: prepare_symvers
+	$(MAKE) -C $(KDIR) M=$(PWD) modules CONFIG_DEBUG_INFO=y CONFIG_DEBUG_INFO_BTF=y V=1
+
+prepare_symvers:
+	@echo "Generating Thunderbolt symbols..."
+	@./gen_tb_symvers.sh
+	@if [ -f "Module.symvers.thunderbolt" ]; then \
+		cat Module.symvers.thunderbolt >> Module.symvers; \
+	fi
 
 clean:
 	$(MAKE) -C $(KDIR) M=$(PWD) clean

@@ -6,6 +6,7 @@
 
 #include "include/anarchy_device.h"
 #include "include/common.h"
+#include "include/thunderbolt_internal.h"
 #include "include/gpu_config.h"
 #include "include/pcie_types.h"
 #include "include/pcie_state.h"

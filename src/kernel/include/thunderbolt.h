@@ -1,18 +1,17 @@
 #ifndef ANARCHY_THUNDERBOLT_H
 #define ANARCHY_THUNDERBOLT_H
 
-#include <linux/types.h>
-#include "anarchy_device.h"
+#include "types.h"
 
-/* Thunderbolt register access functions */
+/* Thunderbolt Register Access */
 u32 tb_read32(struct anarchy_device *adev, u32 reg);
 void tb_write32(struct anarchy_device *adev, u32 reg, u32 val);
 
-/* Thunderbolt initialization functions */
+/* Thunderbolt Initialization */
 int anarchy_tb_init(struct anarchy_device *adev);
 void anarchy_tb_fini(struct anarchy_device *adev);
 
-/* Module init/cleanup */
+/* Driver Management */
 int anarchy_thunderbolt_init(void);
 void anarchy_thunderbolt_cleanup(void);
 

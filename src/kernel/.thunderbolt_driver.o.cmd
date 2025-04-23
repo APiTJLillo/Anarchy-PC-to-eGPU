@@ -1,4 +1,4 @@
-savedcmd_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/thunderbolt_driver.o := gcc-14 -Wp,-MMD,/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/.thunderbolt_driver.o.d -nostdinc -I./arch/x86/include -I./arch/x86/include/generated  -I./include -I./arch/x86/include/uapi -I./arch/x86/include/generated/uapi -I./include/uapi -I./include/generated/uapi -include ./include/linux/compiler-version.h -include ./include/linux/kconfig.h -I./ubuntu/include -include ./include/linux/compiler_types.h -D__KERNEL__ -fmacro-prefix-map=./= -std=gnu11 -fshort-wchar -funsigned-char -fno-common -fno-PIE -fno-strict-aliasing -mno-sse -mno-mmx -mno-sse2 -mno-3dnow -mno-avx -fcf-protection=none -m64 -falign-jumps=1 -falign-loops=1 -mno-80387 -mno-fp-ret-in-387 -mpreferred-stack-boundary=3 -mskip-rax-setup -mtune=generic -mno-red-zone -mcmodel=kernel -Wno-sign-compare -fno-asynchronous-unwind-tables -mindirect-branch=thunk-extern -mindirect-branch-register -mindirect-branch-cs-prefix -mfunction-return=thunk-extern -fno-jump-tables -mharden-sls=all -fpatchable-function-entry=16,16 -fno-delete-null-pointer-checks -O2 -fno-allow-store-data-races -fstack-protector-strong -fno-omit-frame-pointer -fno-optimize-sibling-calls -ftrivial-auto-var-init=zero -fno-stack-clash-protection -fzero-call-used-regs=used-gpr -pg -mrecord-mcount -mfentry -DCC_USING_FENTRY -fmin-function-alignment=16 -fstrict-flex-arrays=3 -fno-strict-overflow -fno-stack-check -fconserve-stack -Wall -Wundef -Werror=implicit-function-declaration -Werror=implicit-int -Werror=return-type -Werror=strict-prototypes -Wno-format-security -Wno-trigraphs -Wno-frame-address -Wno-address-of-packed-member -Wmissing-declarations -Wmissing-prototypes -Wframe-larger-than=1024 -Wno-main -Wno-dangling-pointer -Wvla -Wno-pointer-sign -Wcast-function-type -Wno-stringop-overflow -Wno-array-bounds -Wno-alloc-size-larger-than -Wimplicit-fallthrough=5 -Werror=date-time -Werror=incompatible-pointer-types -Werror=designated-init -Wenum-conversion -Wextra -Wunused -Wno-unused-but-set-variable -Wno-unused-const-variable -Wno-packed-not-aligned -Wno-format-overflow -Wno-format-truncation -Wno-stringop-truncation -Wno-override-init -Wno-missing-field-initializers -Wno-type-limits -Wno-shift-negative-value -Wno-maybe-uninitialized -Wno-sign-compare -Wno-unused-parameter -g -gdwarf-5 -DDEBUG -g -O1  -fsanitize=bounds-strict -fsanitize=shift -fsanitize=bool -fsanitize=enum  -fsanitize=signed-integer-overflow  -DMODULE  -DKBUILD_BASENAME='"thunderbolt_driver"' -DKBUILD_MODNAME='"anarchy"' -D__KBUILD_MODNAME=kmod_anarchy -c -o /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/thunderbolt_driver.o /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/thunderbolt_driver.c   ; ./tools/objtool/objtool --hacks=jump_label --hacks=noinstr --hacks=skylake --retpoline --rethunk --sls --stackval --static-call --uaccess --prefix=16   --module /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/thunderbolt_driver.o
+savedcmd_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/thunderbolt_driver.o := gcc-14 -Wp,-MMD,/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/.thunderbolt_driver.o.d -nostdinc -I./arch/x86/include -I./arch/x86/include/generated  -I./include -I./arch/x86/include/uapi -I./arch/x86/include/generated/uapi -I./include/uapi -I./include/generated/uapi -include ./include/linux/compiler-version.h -include ./include/linux/kconfig.h -I./ubuntu/include -include ./include/linux/compiler_types.h -D__KERNEL__ -fmacro-prefix-map=./= -std=gnu11 -fshort-wchar -funsigned-char -fno-common -fno-PIE -fno-strict-aliasing -mno-sse -mno-mmx -mno-sse2 -mno-3dnow -mno-avx -fcf-protection=none -m64 -falign-jumps=1 -falign-loops=1 -mno-80387 -mno-fp-ret-in-387 -mpreferred-stack-boundary=3 -mskip-rax-setup -mtune=generic -mno-red-zone -mcmodel=kernel -Wno-sign-compare -fno-asynchronous-unwind-tables -mindirect-branch=thunk-extern -mindirect-branch-register -mindirect-branch-cs-prefix -mfunction-return=thunk-extern -fno-jump-tables -mharden-sls=all -fpatchable-function-entry=16,16 -fno-delete-null-pointer-checks -O2 -fno-allow-store-data-races -fstack-protector-strong -fno-omit-frame-pointer -fno-optimize-sibling-calls -ftrivial-auto-var-init=zero -fno-stack-clash-protection -fzero-call-used-regs=used-gpr -pg -mrecord-mcount -mfentry -DCC_USING_FENTRY -fmin-function-alignment=16 -fstrict-flex-arrays=3 -fno-strict-overflow -fno-stack-check -fconserve-stack -Wall -Wundef -Werror=implicit-function-declaration -Werror=implicit-int -Werror=return-type -Werror=strict-prototypes -Wno-format-security -Wno-trigraphs -Wno-frame-address -Wno-address-of-packed-member -Wmissing-declarations -Wmissing-prototypes -Wframe-larger-than=1024 -Wno-main -Wno-dangling-pointer -Wvla -Wno-pointer-sign -Wcast-function-type -Wno-stringop-overflow -Wno-array-bounds -Wno-alloc-size-larger-than -Wimplicit-fallthrough=5 -Werror=date-time -Werror=incompatible-pointer-types -Werror=designated-init -Wenum-conversion -Wextra -Wunused -Wno-unused-but-set-variable -Wno-unused-const-variable -Wno-packed-not-aligned -Wno-format-overflow -Wno-format-truncation -Wno-stringop-truncation -Wno-override-init -Wno-missing-field-initializers -Wno-type-limits -Wno-shift-negative-value -Wno-maybe-uninitialized -Wno-sign-compare -Wno-unused-parameter -g -gdwarf-5 -DDEBUG -g -O1 -DCONFIG_DEBUG_INFO_BTF=1  -fsanitize=bounds-strict -fsanitize=shift -fsanitize=bool -fsanitize=enum  -fsanitize=signed-integer-overflow  -DMODULE  -DKBUILD_BASENAME='"thunderbolt_driver"' -DKBUILD_MODNAME='"anarchy"' -D__KBUILD_MODNAME=kmod_anarchy -c -o /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/thunderbolt_driver.o /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/thunderbolt_driver.c   ; ./tools/objtool/objtool --hacks=jump_label --hacks=noinstr --hacks=skylake --retpoline --rethunk --sls --stackval --static-call --uaccess --prefix=16   --module /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/thunderbolt_driver.o
 
 source_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/thunderbolt_driver.o := /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/thunderbolt_driver.c
 
@@ -1040,7 +1040,6 @@ deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/thunderbolt_driver.o := \
     $(wildcard include/config/HAVE_MOD_ARCH_SPECIFIC) \
     $(wildcard include/config/MODULES_USE_ELF_REL) \
     $(wildcard include/config/MODULES_USE_ELF_RELA) \
-  include/linux/thunderbolt.h \
   include/linux/device.h \
     $(wildcard include/config/HAS_IOMEM) \
     $(wildcard include/config/GENERIC_MSI_IRQ) \
@@ -1084,6 +1083,8 @@ deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/thunderbolt_driver.o := \
   include/linux/device/driver.h \
   arch/x86/include/asm/device.h \
   include/linux/pm_wakeup.h \
+  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/thunderbolt_driver.h \
+  include/linux/thunderbolt.h \
   include/linux/mod_devicetable.h \
   include/uapi/linux/mei.h \
   include/uapi/linux/mei_uuid.h \
@@ -1229,27 +1230,11 @@ deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/thunderbolt_driver.o := \
     $(wildcard include/config/DMA_API_DEBUG) \
     $(wildcard include/config/NEED_DMA_MAP_STATE) \
   include/linux/dma-direction.h \
-  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/thunderbolt_driver.h \
-  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/service_probe.h \
-  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/anarchy_device.h \
-  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/anarchy_device_forward.h \
-  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/pcie_forward.h \
-  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/pcie_types.h \
-  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/ring.h \
-  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/power_mgmt.h \
-  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/forward.h \
-  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/perf_monitor.h \
-  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/thermal_forward.h \
-  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/gpu_emu_forward.h \
-  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/bandwidth.h \
-  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/bandwidth_config.h \
-  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/service_pm.h \
 
 /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/thunderbolt_driver.o: $(deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/thunderbolt_driver.o)
 
 $(deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/thunderbolt_driver.o):
 
 /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/thunderbolt_driver.o: $(wildcard ./tools/objtool/objtool)
-#SYMVER anarchy_thunderbolt_driver 0xc0acf110
 #SYMVER tb_service_driver_register 0x81214f9a
 #SYMVER tb_service_driver_unregister 0xb706472d
