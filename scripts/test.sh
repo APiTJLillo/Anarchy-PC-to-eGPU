@@ -1,7 +1,32 @@
 #!/bin/bash
 set -e
 
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+PROJECT_ROOT="$( cd "$SCRIPT_DIR/.." && pwd )"
+
 echo "Anarchy eGPU Test Script"
+
+# Parse command line arguments
+TEST_TYPE="all"
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --stress)
+            TEST_TYPE="stress"
+            shift
+            ;;
+        --unit)
+            TEST_TYPE="unit"
+            shift
+            ;;
+        --integration)
+            TEST_TYPE="integration"
+            shift
+            ;;
+        *)
+            shift
+            ;;
+    esac
+done
 
 # Function to check if module is loaded
 check_module() {
@@ -70,14 +95,47 @@ echo -e "\nLaunching performance monitor..."
 python3 ../tools/perf_monitor.py &
 MONITOR_PID=$!
 
-# Run some basic GPU tests
-echo -e "\nRunning basic GPU tests..."
-cd ../tests/e2e
-make cuda_test
-./cuda_test
+# Run the specified tests
+case $TEST_TYPE in
+    "stress")
+        echo -e "\nRunning stress tests..."
+        cd "$PROJECT_ROOT/tests/stress"
+        if [ -f "connection_interruption_test" ]; then
+            echo "Running connection interruption tests..."
+            sudo ./connection_interruption_test
+        else
+            echo "Building connection interruption tests..."
+            make
+            sudo ./connection_interruption_test
+        fi
+        ;;
+    "unit")
+        echo -e "\nRunning unit tests..."
+        cd "$PROJECT_ROOT/tests/unit"
+        make && ./run_unit_tests
+        ;;
+    "integration")
+        echo -e "\nRunning integration tests..."
+        cd "$PROJECT_ROOT/tests/integration"
+        make && sudo ./run_integration_tests
+        ;;
+    "all")
+        echo -e "\nRunning all tests..."
+        cd "$PROJECT_ROOT/tests"
+        make clean && make
+        for test_type in unit integration stress; do
+            echo "Running $test_type tests..."
+            cd "$test_type"
+            make && sudo ./run_"$test_type"_tests
+            cd ..
+        done
+        ;;
+esac
 
 # Clean up
-kill $MONITOR_PID
+if [ ! -z "$MONITOR_PID" ]; then
+    kill $MONITOR_PID 2>/dev/null || true
+fi
 
 echo -e "\nTest complete! Check test results above."
-echo "For continuous monitoring, run: tools/perf_monitor.py"
+echo "For continuous monitoring, run: $PROJECT_ROOT/tools/perf_monitor.py"
