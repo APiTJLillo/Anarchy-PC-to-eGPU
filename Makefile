@@ -9,7 +9,7 @@ PWD := $(shell pwd)
 all: modules
 
 modules:
-	$(MAKE) -C $(KDIR) M=$(PWD)/src/kernel modules
+	$(MAKE) -C $(KDIR) M=$(PWD)/src/kernel modules CONFIG_DEBUG_INFO=y CONFIG_DEBUG_INFO_BTF=y CONFIG_DEBUG_INFO_BTF_MODULES=y
 
 clean:
 	$(MAKE) -C $(KDIR) M=$(PWD)/src/kernel clean

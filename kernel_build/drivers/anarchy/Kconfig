@@ -1,0 +1,23 @@
+config ANARCHY_EGPU
+	tristate "Anarchy eGPU Support"
+	depends on PCI && THUNDERBOLT
+	help
+	  This enables support for GPU passthrough over Thunderbolt/USB4
+	  connections, specifically designed for the RTX 4090 GPU.
+	  
+	  The module provides PCIe device emulation and Thunderbolt
+	  connection management for external GPU support.
+	  
+	  If unsure, say N.
+
+config ANARCHY_EGPU_DEBUG
+	bool "Enable debug output"
+	depends on ANARCHY_EGPU
+	help
+	  Enable verbose debug output for the Anarchy eGPU driver.
+	  This includes detailed logging of PCIe transactions and
+	  Thunderbolt connection events.
+	  
+	  If you are having problems with the driver, say Y.
+
+	  To compile this driver as a module, choose M here. 

@@ -1,0 +1,1349 @@
+#include <linux/module.h>
+#include <linux/kernel.h>
+#include <linux/init.h>
+#include <linux/thunderbolt.h>
+#include <linux/uuid.h>
+#include <linux/delay.h>
+#include <linux/dma-mapping.h>
+#include <linux/slab.h>
+#include <linux/wait.h>
+#include <linux/completion.h>
+#include <linux/workqueue.h>
+#include <linux/spinlock.h>
+#include <linux/mutex.h>
+
+#include "../../include/anarchy-egpu.h"
+#include "anarchy-perf.h"
+#include "pcie.h"
+
+/* Module parameters */
+static bool force_power = false;
+module_param(force_power, bool, 0444);
+MODULE_PARM_DESC(force_power, "Force Thunderbolt power on during initialization");
+
+/* Thunderbolt mode definitions */
+#define TB_MODE_THUNDERBOLT 1
+#define TB_MODE_USB4 2
+
+/* Microsoft USB4 Connection Manager specific parameters */
+#define MS_USB4_VENDOR_ID 0x45e
+#define MS_USB4_DEVICE_ID 0x83f
+#define MS_USB4_MIN_STABLE_TIME_MS 10000  /* Increased for MS USB4 manager */
+#define MS_USB4_RECONNECT_DELAY_MS 5000
+#define MS_USB4_MAX_RETRIES 5
+
+/* Ring synchronization */
+static DEFINE_MUTEX(ring_mutex);
+static DECLARE_WAIT_QUEUE_HEAD(xdomain_wait);
+
+/* Global device pointer for tests */
+static struct anarchy_device *global_adev;
+static atomic_t init_count = ATOMIC_INIT(0);
+static DEFINE_MUTEX(init_mutex);
+
+/* PCIe state tracking - move to top of file after includes */
+#define PCIE_STATE_UNKNOWN     0
+#define PCIE_STATE_DOWN        1
+#define PCIE_STATE_TRAINING    2
+#define PCIE_STATE_ACTIVE      3
+#define PCIE_STATE_ERROR       4
+
+struct pcie_debug_info {
+    unsigned long last_state_change;
+    unsigned int current_state;
+    unsigned long link_errors;
+    unsigned long training_attempts;
+    unsigned long successful_trains;
+    unsigned int current_speed;
+    unsigned int current_width;
+    char last_error[128];
+    spinlock_t lock;
+};
+
+static struct pcie_debug_info pcie_debug = {
+    .current_state = PCIE_STATE_UNKNOWN,
+    .link_errors = 0,
+    .training_attempts = 0,
+    .successful_trains = 0,
+    .current_speed = 0,
+    .current_width = 0
+};
+
+/* Forward declarations */
+static void update_pcie_state(struct anarchy_device *adev, unsigned int new_state, 
+                            const char *reason);
+static void log_pcie_error(struct anarchy_device *adev, const char *error_msg, int status);
+static bool anarchy_check_usb4_stability(struct tb_service *svc);
+int anarchy_pcie_train_link(struct anarchy_device *adev);
+static void anarchy_ring_cleanup(struct anarchy_device *adev, struct anarchy_ring *ring);
+static void anarchy_ring_error(struct anarchy_device *adev, struct anarchy_ring *ring);
+static void anarchy_connection_recovery_work(struct work_struct *work);
+static int anarchy_service_probe(struct tb_service *svc, const struct tb_service_id *id);
+static void anarchy_service_remove(struct tb_service *svc);
+
+/**
+ * anarchy_get_device - Get the global device structure
+ *
+ * Returns the global device structure for testing.
+ */
+struct anarchy_device *anarchy_get_device(void)
+{
+	return global_adev;
+}
+EXPORT_SYMBOL_GPL(anarchy_get_device);
+
+/* Remove the old host state tracking */
+#define TB_HOST_DEBOUNCE_MS 2500
+#define TB_USB4_STABLE_TIME_MS 2000
+#define TB_USB4_MAX_TRANSITIONS 10
+#define TB_USB4_TRANSITION_WINDOW_MS 15000
+#define TB_USB4_MIN_CONNECT_TIME_MS 5000    /* Minimum time to consider a connection valid */
+
+/* USB4 connection parameters based on observed patterns */
+#define TB_USB4_MIN_STABLE_TIME_MS 5000    /* Increased minimum stable time */
+#define TB_USB4_RECONNECT_DELAY_MS 3000    /* Increased reconnect delay */
+#define TB_USB4_PROPERTY_RETRY_MS 500      /* Increased property retry delay */
+#define TB_USB4_PROPERTY_MAX_RETRIES 5     /* Increased max retries */
+#define TB_USB4_TRANSITION_COOLDOWN_MS 10000 /* Added cooldown period after multiple transitions */
+
+/* Add new connection debouncing parameters */
+#define TB_CONNECTION_DEBOUNCE_MS 2000
+#define TB_MAX_RECONNECT_ATTEMPTS 5
+#define TB_FORCE_TB_MODE_DELAY_MS 3000
+
+/* XDomain request parameters */
+#define TB_XDOMAIN_REQ_SIZE 256
+#define TB_XDOMAIN_TIMEOUT_MS 1000
+
+#define TB_USB4_BACKOFF_BASE_MS 1000     /* Base backoff time */
+#define TB_USB4_BACKOFF_MAX_MS 30000     /* Maximum backoff time */
+#define TB_USB4_STABLE_WINDOW_MS 60000   /* Window to track stability */
+#define TB_USB4_MAX_QUICK_RECONNECTS 3   /* Maximum number of quick reconnects before backoff */
+
+struct tb_connection_stats {
+	unsigned long last_connect;
+	unsigned long last_disconnect;
+	unsigned long stable_since;
+	unsigned int reconnect_count;
+	unsigned int quick_reconnect_count;
+	unsigned long backoff_time;
+	bool in_backoff;
+	spinlock_t lock;
+};
+
+static struct tb_connection_stats conn_stats = {
+	.reconnect_count = 0,
+	.quick_reconnect_count = 0,
+	.backoff_time = TB_USB4_BACKOFF_BASE_MS,
+	.in_backoff = false
+};
+
+struct tb_usb4_state {
+	unsigned long last_transition;
+	unsigned int transitions;
+	bool is_stable;
+	spinlock_t lock;
+	unsigned long last_connect;
+	unsigned long last_disconnect;
+};
+
+static struct tb_usb4_state usb4_state = {
+	.last_transition = 0,
+	.transitions = 0,
+	.is_stable = false,
+	.last_connect = 0,
+	.last_disconnect = 0,
+};
+
+/* Service table with proper initialization */
+static const struct tb_service_id anarchy_service_table[] = {
+	{
+		.match_flags = TBSVC_MATCH_PROTOCOL_KEY | TBSVC_MATCH_PROTOCOL_ID,
+		.protocol_key = 0x8,    /* USB4/TB eGPU protocol key */
+		.protocol_id = 0x1,     /* eGPU specific protocol ID */
+		.protocol_version = 0x1,
+		.protocol_revision = 0x0
+	},
+	{ }  /* Terminating entry */
+};
+
+/* Service driver */
+static struct tb_service_driver anarchy_service_driver = {
+	.driver = {
+		.name = "anarchy-egpu",
+		.owner = THIS_MODULE,
+	},
+	.id_table = anarchy_service_table,
+	.probe = anarchy_service_probe,
+	.remove = anarchy_service_remove,
+};
+
+static bool is_ms_usb4_manager(struct tb_service *svc)
+{
+	struct tb_xdomain *xd = tb_service_parent(svc);
+	if (!xd)
+		return false;
+	
+	return (xd->vendor == MS_USB4_VENDOR_ID && xd->device == MS_USB4_DEVICE_ID);
+}
+
+static bool should_attempt_connection(struct tb_service *svc)
+{
+	unsigned long now = jiffies;
+	bool should_connect = true;
+	unsigned long min_wait;
+	
+	spin_lock(&conn_stats.lock);
+	
+	/* Check if we're in backoff period */
+	if (conn_stats.in_backoff) {
+		if (time_before(now, conn_stats.last_disconnect + msecs_to_jiffies(conn_stats.backoff_time))) {
+			dev_info(&svc->dev, "In backoff period, waiting %lu ms\n", conn_stats.backoff_time);
+			should_connect = false;
+			goto out_unlock;
+		}
+		conn_stats.in_backoff = false;
+	}
+	
+	/* Check for quick reconnects */
+	if (conn_stats.last_disconnect && 
+		time_before(now, conn_stats.last_disconnect + msecs_to_jiffies(TB_USB4_MIN_CONNECT_TIME_MS))) {
+		conn_stats.quick_reconnect_count++;
+		
+		if (conn_stats.quick_reconnect_count > TB_USB4_MAX_QUICK_RECONNECTS) {
+			/* Enter exponential backoff */
+			conn_stats.backoff_time = min(conn_stats.backoff_time * 2, TB_USB4_BACKOFF_MAX_MS);
+			conn_stats.in_backoff = true;
+			dev_warn(&svc->dev, "Too many quick reconnects, backing off for %lu ms\n",
+					conn_stats.backoff_time);
+			should_connect = false;
+			goto out_unlock;
+		}
+	} else {
+		/* Reset quick reconnect counter if enough time has passed */
+		conn_stats.quick_reconnect_count = 0;
+		conn_stats.backoff_time = TB_USB4_BACKOFF_BASE_MS;
+	}
+	
+	/* Enforce minimum wait time between connection attempts */
+	min_wait = conn_stats.quick_reconnect_count ? 
+			   TB_USB4_BACKOFF_BASE_MS * (1 << conn_stats.quick_reconnect_count) :
+			   TB_USB4_BACKOFF_BASE_MS;
+			   
+	if (conn_stats.last_disconnect && 
+		time_before(now, conn_stats.last_disconnect + msecs_to_jiffies(min_wait))) {
+		dev_info(&svc->dev, "Enforcing minimum wait time of %lu ms\n", min_wait);
+		should_connect = false;
+	}
+
+out_unlock:
+	spin_unlock(&conn_stats.lock);
+	return should_connect;
+}
+
+static void update_connection_stats(struct tb_service *svc, bool connected)
+{
+	unsigned long now = jiffies;
+	unsigned long connect_duration;
+	
+	spin_lock(&conn_stats.lock);
+	
+	if (connected) {
+		conn_stats.last_connect = now;
+		conn_stats.reconnect_count++;
+		
+		/* Check if previous connection was stable */
+		if (conn_stats.stable_since && conn_stats.last_disconnect) {
+			connect_duration = conn_stats.last_disconnect - conn_stats.stable_since;
+			if (connect_duration >= msecs_to_jiffies(TB_USB4_STABLE_WINDOW_MS)) {
+				/* Reset counters after a stable period */
+				dev_info(&svc->dev, "Previous connection was stable, resetting counters\n");
+				conn_stats.reconnect_count = 0;
+				conn_stats.quick_reconnect_count = 0;
+				conn_stats.backoff_time = TB_USB4_BACKOFF_BASE_MS;
+			}
+		}
+		conn_stats.stable_since = now;
+	} else {
+		conn_stats.last_disconnect = now;
+		if (conn_stats.last_connect) {
+			connect_duration = now - conn_stats.last_connect;
+			if (connect_duration < msecs_to_jiffies(TB_USB4_MIN_CONNECT_TIME_MS)) {
+				dev_warn(&svc->dev, "Connection duration too short: %u ms\n",
+						jiffies_to_msecs(connect_duration));
+			}
+		}
+	}
+	
+	spin_unlock(&conn_stats.lock);
+}
+
+static void anarchy_ring_frame_callback(struct tb_ring *ring, struct ring_frame *frame,
+									  bool canceled)
+{
+	struct anarchy_ring *aring;
+	unsigned long flags;
+	int ret = 0;
+
+	if (!ring || !frame) {
+		pr_err("anarchy: Invalid ring frame callback parameters\n");
+		return;
+	}
+
+	aring = container_of(frame, struct anarchy_ring, frame);
+	if (!aring) {
+		pr_err("anarchy: Failed to get ring structure\n");
+		return;
+	}
+	
+	spin_lock_irqsave(&aring->lock, flags);
+	if (canceled) {
+		dev_dbg(aring->adev->dev, "Ring frame transfer canceled\n");
+		ret = -ECANCELED;
+	}
+	
+	if (aring->current_transfer) {
+		aring->current_transfer->completed = true;
+		aring->current_transfer->error = ret;
+		aring->current_transfer = NULL;
+		atomic_dec(&aring->pending);
+		wake_up(&aring->wait);
+	}
+	spin_unlock_irqrestore(&aring->lock, flags);
+}
+
+static int anarchy_ring_init(struct anarchy_device *adev, struct anarchy_ring *ring)
+{
+	int i;
+
+	spin_lock_init(&ring->lock);
+	init_waitqueue_head(&ring->wait);
+	ring->adev = adev;
+	ring->state = RING_STATE_STOPPED;
+	atomic_set(&ring->pending, 0);
+	ring->current_transfer = NULL;
+
+	for (i = 0; i < ANARCHY_NUM_BUFFERS; i++) {
+		ring->frames[i].data = NULL;
+		ring->frames[i].dma = 0;
+		ring->frames[i].size = 0;
+		ring->frames[i].flags = 0;
+	}
+
+	return 0;
+}
+
+static void anarchy_ring_cleanup(struct anarchy_device *adev, struct anarchy_ring *ring)
+{
+	int i;
+
+	for (i = 0; i < ANARCHY_NUM_BUFFERS; i++) {
+		if (ring->frames[i].data) {
+			dma_free_coherent(&adev->service->dev,
+							ANARCHY_RING_SIZE,
+							ring->frames[i].data,
+							ring->frames[i].dma);
+			ring->frames[i].data = NULL;
+			ring->frames[i].dma = 0;
+		}
+	}
+}
+
+int anarchy_ring_start(struct anarchy_device *adev, struct anarchy_ring *ring, bool tx)
+{
+	int ret = 0;
+	int i;
+
+	if (ring->state != RING_STATE_STOPPED)
+		return -EINVAL;
+
+	dev_info(adev->dev, "Starting %s ring initialization\n", tx ? "TX" : "RX");
+
+	// Allocate ring buffers
+	for (i = 0; i < ANARCHY_NUM_BUFFERS; i++) {
+		ring->frames[i].data = dma_alloc_coherent(&adev->service->dev,
+												 ANARCHY_RING_SIZE,
+												 &ring->frames[i].dma,
+												 GFP_KERNEL);
+		if (!ring->frames[i].data) {
+			ret = -ENOMEM;
+			goto cleanup;
+		}
+		ring->frames[i].size = ANARCHY_RING_SIZE;
+	}
+
+	// Allocate Thunderbolt ring
+	if (tx)
+		ring->ring = tb_ring_alloc_tx(adev->nhi, 0, ANARCHY_NUM_BUFFERS, 0);
+	else
+		ring->ring = tb_ring_alloc_rx(adev->nhi, 0, ANARCHY_NUM_BUFFERS, 0, 0,
+									  0xFFFF, 0xFFFF, NULL, NULL);
+
+	if (!ring->ring) {
+		ret = -ENOMEM;
+		goto cleanup;
+	}
+
+	tb_ring_start(ring->ring);
+	ring->state = RING_STATE_RUNNING;
+	dev_info(adev->dev, "anarchy: %s ring started\n", tx ? "TX" : "RX");
+	return 0;
+
+cleanup:
+	anarchy_ring_cleanup(adev, ring);
+	dev_err(adev->dev, "anarchy: %s ring error: %d\n", tx ? "TX" : "RX", ret);
+	return ret;
+}
+
+void anarchy_ring_stop(struct anarchy_device *adev, struct anarchy_ring *ring)
+{
+	if (ring->state != RING_STATE_RUNNING)
+		return;
+
+	ring->state = RING_STATE_STOPPED;
+	if (ring->ring) {
+		tb_ring_stop(ring->ring);
+		tb_ring_free(ring->ring);
+		ring->ring = NULL;
+	}
+
+	anarchy_ring_cleanup(adev, ring);
+}
+
+int anarchy_ring_transfer(struct anarchy_device *adev, struct anarchy_ring *ring,
+						 struct anarchy_transfer *transfer)
+{
+	unsigned long flags;
+	int ret = 0;
+	int buf_idx;
+
+	if (!transfer || !transfer->data || !transfer->size ||
+		transfer->size > ANARCHY_RING_SIZE)
+		return -EINVAL;
+
+	spin_lock_irqsave(&ring->lock, flags);
+
+	if (ring->state != RING_STATE_RUNNING) {
+		ret = -EINVAL;
+		goto out_unlock;
+	}
+
+	buf_idx = atomic_read(&ring->pending) % ANARCHY_NUM_BUFFERS;
+	
+	memcpy(ring->frames[buf_idx].data, transfer->data, transfer->size);
+	ring->frames[buf_idx].size = transfer->size;
+	ring->frames[buf_idx].flags = transfer->flags;
+
+	ring->current_transfer = transfer;
+	atomic_inc(&ring->pending);
+
+	ring->frame.buffer_phy = ring->frames[buf_idx].dma;
+	ring->frame.size = transfer->size;
+	ring->frame.flags = transfer->flags;
+	ring->frame.callback = anarchy_ring_frame_callback;
+
+	ret = tb_ring_tx(ring->ring, &ring->frame);
+	if (ret)
+		anarchy_ring_error(adev, ring);
+
+out_unlock:
+	spin_unlock_irqrestore(&ring->lock, flags);
+	return ret;
+}
+
+void anarchy_ring_complete(struct anarchy_device *adev, struct anarchy_ring *ring,
+						  struct anarchy_transfer *transfer)
+{
+	unsigned long flags;
+
+	spin_lock_irqsave(&ring->lock, flags);
+	if (ring->current_transfer == transfer) {
+		ring->current_transfer = NULL;
+		atomic_dec(&ring->pending);
+		wake_up(&ring->wait);
+	}
+	spin_unlock_irqrestore(&ring->lock, flags);
+}
+
+/* Maximum number of connection retries */
+#define ANARCHY_MAX_RETRIES 3
+#define ANARCHY_RETRY_DELAY_MS 1000
+#define ANARCHY_XDOMAIN_TIMEOUT_MS 15000  /* Increased from 5000 to 15000 */
+
+/* Add new connection debouncing parameters */
+#define TB_CONNECTION_DEBOUNCE_MS 2000
+#define TB_MAX_RECONNECT_ATTEMPTS 5
+#define TB_FORCE_TB_MODE_DELAY_MS 3000
+
+/* XDomain request parameters */
+#define TB_XDOMAIN_REQ_SIZE 256
+#define TB_XDOMAIN_TIMEOUT_MS 1000
+
+static u8 xdomain_req_buffer[TB_XDOMAIN_REQ_SIZE];
+static u8 xdomain_resp_buffer[TB_XDOMAIN_REQ_SIZE];
+
+void anarchy_handle_connection_error(struct anarchy_device *adev, int err)
+{
+	dev_err(&adev->service->dev, "Connection error occurred: %d\n", err);
+	
+	/* Only schedule recovery if we're not already in recovery */
+	if ((err == -ETIMEDOUT || err == -ECONNRESET) && 
+	    atomic_cmpxchg(&adev->conn_state, ANARCHY_CONN_CONNECTED, ANARCHY_CONN_RECOVERY) 
+	    == ANARCHY_CONN_CONNECTED) {
+		schedule_work(&adev->recovery_work);
+	}
+	
+	/* Update error statistics */
+	atomic_inc(&adev->error_count);
+}
+
+/* Update recovery function with PCIe state tracking */
+static void anarchy_connection_recovery_work(struct work_struct *work)
+{
+	struct anarchy_device *adev = container_of(work, struct anarchy_device,
+						 recovery_work);
+	struct tb_xdomain *xd;
+	int ret, retries = 0;
+	bool force_tb_mode = false;
+	unsigned long timeout;
+	unsigned long now = jiffies;
+	static unsigned long last_recovery;
+	static int quick_reconnects;
+
+	/* Check if we're having too frequent recoveries */
+	if (time_before(now, last_recovery + msecs_to_jiffies(TB_USB4_STABLE_TIME_MS))) {
+		quick_reconnects++;
+		if (quick_reconnects > TB_USB4_MAX_TRANSITIONS) {
+			dev_warn(adev->dev, "Too many quick reconnects, backing off\n");
+			msleep(TB_USB4_MIN_CONNECT_TIME_MS * quick_reconnects);
+		}
+	} else {
+		quick_reconnects = 0;
+	}
+	last_recovery = now;
+
+	/* Ensure we're in recovery state */
+	if (atomic_cmpxchg(&adev->conn_state, ANARCHY_CONN_RECOVERY,
+					  ANARCHY_CONN_RECOVERY_IN_PROGRESS) != ANARCHY_CONN_RECOVERY) {
+		dev_info(adev->dev, "Recovery already in progress or state changed\n");
+		return;
+	}
+
+	dev_info(adev->dev, "Starting connection recovery with enhanced stability\n");
+	update_pcie_state(adev, PCIE_STATE_DOWN, "Starting recovery");
+
+	/* Get XDomain with proper error handling */
+	xd = tb_service_parent(adev->service);
+	if (!xd) {
+		dev_err(adev->dev, "No XDomain found during recovery\n");
+		log_pcie_error(adev, "No XDomain available", -ENODEV);
+		goto recovery_failed;
+	}
+
+	do {
+		/* Stop rings with proper synchronization */
+		mutex_lock(&ring_mutex);
+		anarchy_ring_stop(adev, &adev->tx_ring);
+		anarchy_ring_stop(adev, &adev->rx_ring);
+		mutex_unlock(&ring_mutex);
+
+		/* Enhanced connection stability check with proper timeout */
+		timeout = msecs_to_jiffies(TB_CONNECTION_DEBOUNCE_MS);
+		if (!wait_event_timeout(xdomain_wait,
+						   tb_xdomain_get(xd) && xd->remote_uuid,
+						   timeout)) {
+			dev_warn(adev->dev, "Connection not stable, attempting to force TB mode\n");
+			force_tb_mode = true;
+			update_pcie_state(adev, PCIE_STATE_ERROR, "Connection instability detected");
+		}
+
+		/* If USB4 mode or force TB mode requested, try to force TB mode */
+		if (force_tb_mode || tb_xdomain_get(xd)) {
+			dev_info(adev->dev, "Forcing Thunderbolt mode\n");
+			memset(xdomain_req_buffer, 0, TB_XDOMAIN_REQ_SIZE);
+			memset(xdomain_resp_buffer, 0, TB_XDOMAIN_REQ_SIZE);
+			
+			ret = tb_xdomain_request(xd, xdomain_req_buffer, TB_XDOMAIN_REQ_SIZE,
+						 TB_CFG_PKG_XDOMAIN_REQ,
+						 xdomain_resp_buffer, TB_XDOMAIN_REQ_SIZE,
+						 TB_CFG_PKG_XDOMAIN_RESP,
+						 TB_XDOMAIN_TIMEOUT_MS);
+			if (ret) {
+				dev_err(adev->dev, "Failed to force TB mode: %d\n", ret);
+				log_pcie_error(adev, "TB mode forcing failed", ret);
+				if (ret == -ETIMEDOUT) {
+					msleep(TB_FORCE_TB_MODE_DELAY_MS * (retries + 1));
+				}
+				continue;
+			}
+			msleep(TB_FORCE_TB_MODE_DELAY_MS);
+		}
+
+		/* Wait for connection to stabilize with exponential backoff */
+		msleep(TB_CONNECTION_DEBOUNCE_MS * (1 << retries));
+
+		/* Start PCIe link training */
+		update_pcie_state(adev, PCIE_STATE_TRAINING, "Starting link training");
+		pcie_debug.training_attempts++;
+
+		ret = anarchy_pcie_train_link(adev);
+		if (ret) {
+			log_pcie_error(adev, "Link training failed during recovery", ret);
+			continue;
+		}
+
+		/* Restart rings with enhanced error checking */
+		mutex_lock(&ring_mutex);
+		ret = anarchy_ring_start(adev, &adev->tx_ring, true);
+		if (ret) {
+			dev_err(adev->dev, "Failed to restart TX ring: %d (attempt %d)\n",
+					ret, retries + 1);
+			log_pcie_error(adev, "TX ring restart failed", ret);
+			mutex_unlock(&ring_mutex);
+			continue;
+		}
+
+		ret = anarchy_ring_start(adev, &adev->rx_ring, false);
+		if (ret) {
+			dev_err(adev->dev, "Failed to restart RX ring: %d (attempt %d)\n",
+					ret, retries + 1);
+			log_pcie_error(adev, "RX ring restart failed", ret);
+			anarchy_ring_stop(adev, &adev->tx_ring);
+			mutex_unlock(&ring_mutex);
+			continue;
+		}
+		mutex_unlock(&ring_mutex);
+
+		/* Verify connection stability with proper timeout */
+		timeout = msecs_to_jiffies(TB_CONNECTION_DEBOUNCE_MS * (1 << retries));
+		if (wait_event_timeout(xdomain_wait,
+						   tb_xdomain_get(xd) && xd->remote_uuid,
+						   timeout)) {
+			atomic_set(&adev->conn_state, ANARCHY_CONN_CONNECTED);
+			pcie_debug.successful_trains++;
+			update_pcie_state(adev, PCIE_STATE_ACTIVE, "Recovery successful");
+			dev_info(adev->dev, "Connection recovery successful\n");
+			return;
+		}
+
+		/* Exponential backoff between retries */
+		msleep(ANARCHY_RETRY_DELAY_MS * (1 << retries));
+
+	} while (++retries < ANARCHY_MAX_RETRIES);
+
+recovery_failed:
+	/* Recovery failed after all retries */
+	dev_err(adev->dev, "Connection recovery failed after %d attempts\n", ANARCHY_MAX_RETRIES);
+	adev->conn_error = ANARCHY_ERR_RING_SETUP;
+	atomic_set(&adev->conn_state, ANARCHY_CONN_ERROR);
+	update_pcie_state(adev, PCIE_STATE_ERROR, "Recovery failed after max retries");
+}
+
+static void anarchy_ring_error(struct anarchy_device *adev,
+							  struct anarchy_ring *ring)
+{
+	if (atomic_read(&adev->conn_state) != ANARCHY_CONN_CONNECTED)
+		return;
+
+	atomic_set(&adev->conn_state, ANARCHY_CONN_RECOVERY);
+	schedule_work(&adev->recovery_work);
+}
+
+/**
+ * anarchy_tb_exit - Clean up Thunderbolt resources
+ * @adev: Anarchy device structure
+ */
+void anarchy_tb_exit(void)
+{
+	if (atomic_read(&init_count) == 0) {
+		pr_warn("Anarchy eGPU: Driver not initialized\n");
+		return;
+	}
+
+	mutex_lock(&init_mutex);
+
+	/* Ensure all work is stopped and cleaned up */
+	if (global_adev && global_adev->wq) {
+		cancel_work_sync(&global_adev->recovery_work);
+		destroy_workqueue(global_adev->wq);
+		global_adev->wq = NULL;
+	}
+
+	tb_unregister_service_driver(&anarchy_service_driver);
+	atomic_set(&init_count, 0);
+	pr_info("Anarchy eGPU: Thunderbolt cleanup complete\n");
+
+	mutex_unlock(&init_mutex);
+}
+
+MODULE_LICENSE("GPL");
+MODULE_AUTHOR("Anarchy eGPU Team");
+MODULE_DESCRIPTION("Anarchy eGPU Thunderbolt Driver");
+MODULE_VERSION("1.0");
+
+#define TB_USB4_STATE_UNKNOWN    0
+#define TB_USB4_STATE_CONNECTING 1
+#define TB_USB4_STATE_CONNECTED  2
+#define TB_USB4_STATE_TRAINING   3
+#define TB_USB4_STATE_ERROR      4
+#define TB_USB4_STATE_DISABLED   5
+
+struct tb_usb4_debug_info {
+    unsigned long last_state_change;
+    unsigned long connection_attempts;
+    unsigned long successful_connects;
+    unsigned long failed_connects;
+    unsigned long total_connected_time;
+    unsigned int current_state;
+    char last_error[128];
+    spinlock_t lock;
+};
+
+static struct tb_usb4_debug_info usb4_debug = {
+    .current_state = TB_USB4_STATE_UNKNOWN,
+    .connection_attempts = 0,
+    .successful_connects = 0,
+    .failed_connects = 0,
+    .total_connected_time = 0
+};
+
+static void update_usb4_state(struct tb_service *svc, unsigned int new_state, const char *reason)
+{
+    unsigned long flags;
+    unsigned long now = jiffies;
+    unsigned long duration;
+    char state_str[32];
+
+    spin_lock_irqsave(&usb4_debug.lock, flags);
+
+    /* Calculate time spent in previous state */
+    if (usb4_debug.last_state_change) {
+        duration = now - usb4_debug.last_state_change;
+        if (usb4_debug.current_state == TB_USB4_STATE_CONNECTED) {
+            usb4_debug.total_connected_time += duration;
+        }
+    }
+
+    /* Update state tracking */
+    usb4_debug.last_state_change = now;
+    usb4_debug.current_state = new_state;
+
+    /* Get state string for logging */
+    switch (new_state) {
+        case TB_USB4_STATE_CONNECTING: strcpy(state_str, "CONNECTING"); break;
+        case TB_USB4_STATE_CONNECTED:  strcpy(state_str, "CONNECTED"); break;
+        case TB_USB4_STATE_TRAINING:   strcpy(state_str, "TRAINING"); break;
+        case TB_USB4_STATE_ERROR:      strcpy(state_str, "ERROR"); break;
+        case TB_USB4_STATE_DISABLED:   strcpy(state_str, "DISABLED"); break;
+        default:                       strcpy(state_str, "UNKNOWN"); break;
+    }
+
+    spin_unlock_irqrestore(&usb4_debug.lock, flags);
+
+    /* Log state change with detailed information */
+    dev_info(&svc->dev, "USB4 State Change: %s (Reason: %s)\n", state_str, reason);
+    dev_info(&svc->dev, "Connection Stats: Attempts=%lu, Success=%lu, Failed=%lu, Total Connected Time=%lu ms\n",
+             usb4_debug.connection_attempts,
+             usb4_debug.successful_connects,
+             usb4_debug.failed_connects,
+             jiffies_to_msecs(usb4_debug.total_connected_time));
+}
+
+static void log_connection_event(struct tb_service *svc, bool connected, int status)
+{
+    unsigned long flags;
+    
+    spin_lock_irqsave(&usb4_debug.lock, flags);
+    
+    if (connected) {
+        usb4_debug.connection_attempts++;
+        if (status == 0) {
+            usb4_debug.successful_connects++;
+            update_usb4_state(svc, TB_USB4_STATE_CONNECTED, "Connection successful");
+        } else {
+            usb4_debug.failed_connects++;
+            snprintf(usb4_debug.last_error, sizeof(usb4_debug.last_error),
+                    "Connection failed with status %d", status);
+            update_usb4_state(svc, TB_USB4_STATE_ERROR, usb4_debug.last_error);
+        }
+    } else {
+        update_usb4_state(svc, TB_USB4_STATE_DISABLED, "Host disconnected");
+    }
+    
+    spin_unlock_irqrestore(&usb4_debug.lock, flags);
+}
+
+static int anarchy_service_probe(struct tb_service *svc, const struct tb_service_id *id)
+{
+    struct anarchy_device *adev;
+    int ret, retries;
+    bool is_stable;
+
+    dev_info(&svc->dev, "Probing Anarchy eGPU service (USB4/TB mode)\n");
+    
+    /* Update USB4 state */
+    update_usb4_state(svc, TB_USB4_STATE_CONNECTING, "Starting probe");
+    
+    /* Check if we should attempt connection */
+    if (!should_attempt_connection(svc)) {
+        update_usb4_state(svc, TB_USB4_STATE_DISABLED, "Connection attempt blocked by backoff");
+        return -EAGAIN;
+    }
+    
+    /* Check if this is the MS USB4 Connection Manager */
+    if (is_ms_usb4_manager(svc)) {
+        dev_info(&svc->dev, "Detected Microsoft USB4 Connection Manager, using extended stability times\n");
+        dev_info(&svc->dev, "USB4 Manager State: Vendor=0x%x, Device=0x%x\n",
+                 MS_USB4_VENDOR_ID, MS_USB4_DEVICE_ID);
+    }
+
+    /* Add mandatory delay after recent driver exit */
+    if (usb4_state.last_disconnect && 
+        time_before(jiffies, usb4_state.last_disconnect + msecs_to_jiffies(TB_USB4_RECONNECT_DELAY_MS))) {
+        dev_info(&svc->dev, "Recent disconnect detected, enforcing delay\n");
+        msleep(TB_USB4_RECONNECT_DELAY_MS);
+    }
+
+    /* Wait for initial stability */
+    for (retries = 0; retries < 3; retries++) {
+        is_stable = anarchy_check_usb4_stability(svc);
+        if (is_stable)
+            break;
+        
+        if (retries < 2) {
+            dev_info(&svc->dev, "Waiting for USB4 stability (attempt %d/3)\n", retries + 1);
+            msleep(TB_USB4_MIN_STABLE_TIME_MS);
+        }
+    }
+
+    if (!is_stable) {
+        dev_warn(&svc->dev, "Connection not stable after retries, proceeding with caution\n");
+    }
+
+    /* Allocate device structure */
+    adev = devm_kzalloc(&svc->dev, sizeof(*adev), GFP_KERNEL);
+    if (!adev)
+        return -ENOMEM;
+
+    /* Store global device pointer with memory barrier */
+    smp_wmb();
+    global_adev = adev;
+
+    adev->service = svc;
+    atomic_set(&adev->conn_state, ANARCHY_CONN_CONNECTING);
+    adev->conn_error = ANARCHY_ERR_NONE;
+    atomic_set(&adev->error_count, 0);
+    adev->dev = &svc->dev;
+    adev->max_lanes = ANARCHY_MAX_PCIE_LANES;
+    adev->max_speed = 4;  /* PCIe Gen4 */
+
+    /* Initialize statistics */
+    atomic_set(&adev->stats.pcie_errors, 0);
+    atomic_set(&adev->stats.dma_errors, 0);
+    atomic_set(&adev->stats.tb_errors, 0);
+
+    /* Initialize rings */
+    ret = anarchy_ring_init(adev, &adev->tx_ring);
+    if (ret) {
+        dev_err(&svc->dev, "Failed to initialize TX ring: %d\n", ret);
+        goto err_clear_global;
+    }
+
+    ret = anarchy_ring_init(adev, &adev->rx_ring);
+    if (ret) {
+        dev_err(&svc->dev, "Failed to initialize RX ring: %d\n", ret);
+        goto err_cleanup_tx;
+    }
+
+    /* Create workqueue */
+    adev->wq = alloc_workqueue("anarchy_wq", WQ_HIGHPRI | WQ_UNBOUND, 0);
+    if (!adev->wq) {
+        dev_err(&svc->dev, "Failed to create workqueue\n");
+        ret = -ENOMEM;
+        goto err_cleanup_rx;
+    }
+
+    INIT_WORK(&adev->recovery_work, anarchy_connection_recovery_work);
+    tb_service_set_drvdata(svc, adev);
+
+    /* Initialize PCIe */
+    ret = anarchy_pcie_init(adev);
+    if (ret) {
+        dev_err(&svc->dev, "PCIe initialization failed: %d\n", ret);
+        goto err_cleanup_wq;
+    }
+
+    /* Update connection state */
+    atomic_set(&adev->conn_state, ANARCHY_CONN_CONNECTED);
+    dev_info(&svc->dev, "Anarchy eGPU service probe complete\n");
+
+    /* Update connection result */
+    log_connection_event(svc, true, ret);
+
+    return ret;
+
+err_cleanup_wq:
+    destroy_workqueue(adev->wq);
+err_cleanup_rx:
+    anarchy_ring_cleanup(adev, &adev->rx_ring);
+err_cleanup_tx:
+    anarchy_ring_cleanup(adev, &adev->tx_ring);
+err_clear_global:
+    global_adev = NULL;
+    smp_wmb();
+    return ret;
+}
+
+static void anarchy_service_remove(struct tb_service *svc)
+{
+    struct anarchy_device *adev = tb_service_get_drvdata(svc);
+
+    if (!adev)
+        return;
+
+    dev_info(&svc->dev, "Removing Anarchy eGPU service\n");
+
+    /* Log disconnection */
+    log_connection_event(svc, false, 0);
+
+    /* Only proceed with full cleanup if we're in a stable state */
+    if (atomic_read(&adev->conn_state) == ANARCHY_CONN_CONNECTED) {
+        atomic_set(&adev->conn_state, ANARCHY_CONN_DISCONNECTING);
+
+        /* Stop rings with proper cleanup */
+        mutex_lock(&ring_mutex);
+        if (adev->tx_ring.ring) {
+            tb_ring_stop(adev->tx_ring.ring);
+            anarchy_ring_stop(adev, &adev->tx_ring);
+        }
+        if (adev->rx_ring.ring) {
+            tb_ring_stop(adev->rx_ring.ring);
+            anarchy_ring_stop(adev, &adev->rx_ring);
+        }
+        mutex_unlock(&ring_mutex);
+        
+        /* Clean up PCIe */
+        anarchy_pcie_exit(adev);
+
+        /* Clean up workqueue */
+        if (adev->wq) {
+            cancel_work_sync(&adev->recovery_work);
+            destroy_workqueue(adev->wq);
+            adev->wq = NULL;
+        }
+
+        atomic_set(&adev->conn_state, ANARCHY_CONN_DISCONNECTED);
+    }
+
+    dev_info(&svc->dev, "Anarchy eGPU service removed\n");
+
+    /* Clear global pointer with memory barrier */
+    smp_wmb();
+    global_adev = NULL;
+
+    devm_kfree(&svc->dev, adev);
+}
+
+int anarchy_tb_init(void)
+{
+	int ret;
+	
+	/* Use mutex to ensure atomic initialization */
+	if (!mutex_trylock(&init_mutex)) {
+		pr_warn("Anarchy eGPU: Initialization already in progress\n");
+		return -EAGAIN;
+	}
+	
+	/* Check if we're already initialized */
+	if (atomic_read(&init_count) > 0) {
+		mutex_unlock(&init_mutex);
+		pr_warn("Anarchy eGPU: Driver already initialized\n");
+		return -EALREADY;
+	}
+
+	/* Initialize the spinlock */
+	spin_lock_init(&usb4_state.lock);
+	
+	ret = tb_register_service_driver(&anarchy_service_driver);
+	if (ret == 0) {
+		atomic_inc(&init_count);
+		pr_info("Anarchy eGPU: Thunderbolt initialization complete\n");
+	} else {
+		pr_err("Anarchy eGPU: Failed to register service driver: %d\n", ret);
+	}
+	
+	mutex_unlock(&init_mutex);
+	return ret;
+}
+
+/* Fix PCIe state update function */
+static void update_pcie_state(struct anarchy_device *adev, unsigned int new_state, 
+                            const char *reason)
+{
+    unsigned long flags;
+    unsigned long now = jiffies;
+    char state_str[32];
+    u32 link_status;
+    int ret;
+
+    spin_lock_irqsave(&pcie_debug.lock, flags);
+
+    /* Update state tracking */
+    pcie_debug.last_state_change = now;
+    pcie_debug.current_state = new_state;
+
+    /* Get state string for logging */
+    switch (new_state) {
+        case PCIE_STATE_DOWN:     strcpy(state_str, "DOWN"); break;
+        case PCIE_STATE_TRAINING: strcpy(state_str, "TRAINING"); break;
+        case PCIE_STATE_ACTIVE:   strcpy(state_str, "ACTIVE"); break;
+        case PCIE_STATE_ERROR:    strcpy(state_str, "ERROR"); break;
+        default:                  strcpy(state_str, "UNKNOWN"); break;
+    }
+
+    /* Read current link status if device is available */
+    if (adev && adev->service) {
+        ret = anarchy_pcie_read_config(adev, PCI_EXP_LNKSTA, 4, &link_status);
+        if (ret == 0) {
+            pcie_debug.current_speed = link_status & PCI_EXP_LNKSTA_CLS;
+            pcie_debug.current_width = (link_status & PCI_EXP_LNKSTA_NLW) >> 
+                                     PCI_EXP_LNKSTA_NLW_SHIFT;
+        }
+    }
+
+    spin_unlock_irqrestore(&pcie_debug.lock, flags);
+
+    /* Log state change with detailed information */
+    dev_info(adev->dev, "PCIe State Change: %s (Reason: %s)\n", state_str, reason);
+    if (new_state == PCIE_STATE_ACTIVE) {
+        dev_info(adev->dev, "PCIe Link: Speed=Gen%u, Width=x%u\n",
+                pcie_debug.current_speed, pcie_debug.current_width);
+    }
+    dev_info(adev->dev, "PCIe Stats: Training Attempts=%lu, Success=%lu, Errors=%lu\n",
+             pcie_debug.training_attempts,
+             pcie_debug.successful_trains,
+             pcie_debug.link_errors);
+}
+
+/* Fix USB4 stability check function */
+static bool anarchy_check_usb4_stability(struct tb_service *svc)
+{
+    struct tb_xdomain *xd = tb_service_parent(svc);
+    unsigned long timeout;
+    bool is_stable = false;
+
+    if (!xd)
+        return false;
+
+    timeout = msecs_to_jiffies(TB_USB4_MIN_STABLE_TIME_MS);
+    is_stable = wait_event_timeout(xdomain_wait,
+                               tb_xdomain_get(xd) && xd->remote_uuid,
+                               timeout);
+
+    return is_stable;
+}
+
+/* Update anarchy_pcie_init to use new debugging */
+int anarchy_pcie_init(struct anarchy_device *adev)
+{
+    int ret;
+
+    update_pcie_state(adev, PCIE_STATE_DOWN, "Starting PCIe initialization");
+
+    /* Initialize PCIe link */
+    ret = anarchy_pcie_setup_bars(adev);
+    if (ret) {
+        log_pcie_error(adev, "Failed to setup PCIe BARs", ret);
+        return ret;
+    }
+
+    /* Start link training */
+    update_pcie_state(adev, PCIE_STATE_TRAINING, "Beginning link training");
+    pcie_debug.training_attempts++;
+
+    ret = anarchy_pcie_train_link(adev);
+    if (ret) {
+        log_pcie_error(adev, "Link training failed", ret);
+        return ret;
+    }
+
+    pcie_debug.successful_trains++;
+    update_pcie_state(adev, PCIE_STATE_ACTIVE, "Link training successful");
+
+    return 0;
+}
+
+/* Update anarchy_pcie_exit to use new debugging */
+void anarchy_pcie_exit(struct anarchy_device *adev)
+{
+    update_pcie_state(adev, PCIE_STATE_DOWN, "PCIe shutdown requested");
+    
+    /* Existing cleanup code */
+    anarchy_pcie_cleanup(adev);
+}
+
+/* Fix service probe USB4 manager info */
+static int anarchy_service_probe(struct tb_service *svc, const struct tb_service_id *id)
+{
+    struct anarchy_device *adev;
+    int ret, retries;
+    bool is_stable;
+
+    dev_info(&svc->dev, "Probing Anarchy eGPU service (USB4/TB mode)\n");
+    
+    /* Update USB4 state */
+    update_usb4_state(svc, TB_USB4_STATE_CONNECTING, "Starting probe");
+    
+    /* Check if we should attempt connection */
+    if (!should_attempt_connection(svc)) {
+        update_usb4_state(svc, TB_USB4_STATE_DISABLED, "Connection attempt blocked by backoff");
+        return -EAGAIN;
+    }
+    
+    /* Check if this is the MS USB4 Connection Manager */
+    if (is_ms_usb4_manager(svc)) {
+        dev_info(&svc->dev, "Detected Microsoft USB4 Connection Manager, using extended stability times\n");
+        dev_info(&svc->dev, "USB4 Manager State: Vendor=0x%x, Device=0x%x\n",
+                 MS_USB4_VENDOR_ID, MS_USB4_DEVICE_ID);
+    }
+
+    /* Add mandatory delay after recent driver exit */
+    if (usb4_state.last_disconnect && 
+        time_before(jiffies, usb4_state.last_disconnect + msecs_to_jiffies(TB_USB4_RECONNECT_DELAY_MS))) {
+        dev_info(&svc->dev, "Recent disconnect detected, enforcing delay\n");
+        msleep(TB_USB4_RECONNECT_DELAY_MS);
+    }
+
+    /* Wait for initial stability */
+    for (retries = 0; retries < 3; retries++) {
+        is_stable = anarchy_check_usb4_stability(svc);
+        if (is_stable)
+            break;
+        
+        if (retries < 2) {
+            dev_info(&svc->dev, "Waiting for USB4 stability (attempt %d/3)\n", retries + 1);
+            msleep(TB_USB4_MIN_STABLE_TIME_MS);
+        }
+    }
+
+    if (!is_stable) {
+        dev_warn(&svc->dev, "Connection not stable after retries, proceeding with caution\n");
+    }
+
+    /* Allocate device structure */
+    adev = devm_kzalloc(&svc->dev, sizeof(*adev), GFP_KERNEL);
+    if (!adev)
+        return -ENOMEM;
+
+    /* Store global device pointer with memory barrier */
+    smp_wmb();
+    global_adev = adev;
+
+    adev->service = svc;
+    atomic_set(&adev->conn_state, ANARCHY_CONN_CONNECTING);
+    adev->conn_error = ANARCHY_ERR_NONE;
+    atomic_set(&adev->error_count, 0);
+    adev->dev = &svc->dev;
+    adev->max_lanes = ANARCHY_MAX_PCIE_LANES;
+    adev->max_speed = 4;  /* PCIe Gen4 */
+
+    /* Initialize statistics */
+    atomic_set(&adev->stats.pcie_errors, 0);
+    atomic_set(&adev->stats.dma_errors, 0);
+    atomic_set(&adev->stats.tb_errors, 0);
+
+    /* Initialize rings */
+    ret = anarchy_ring_init(adev, &adev->tx_ring);
+    if (ret) {
+        dev_err(&svc->dev, "Failed to initialize TX ring: %d\n", ret);
+        goto err_clear_global;
+    }
+
+    ret = anarchy_ring_init(adev, &adev->rx_ring);
+    if (ret) {
+        dev_err(&svc->dev, "Failed to initialize RX ring: %d\n", ret);
+        goto err_cleanup_tx;
+    }
+
+    /* Create workqueue */
+    adev->wq = alloc_workqueue("anarchy_wq", WQ_HIGHPRI | WQ_UNBOUND, 0);
+    if (!adev->wq) {
+        dev_err(&svc->dev, "Failed to create workqueue\n");
+        ret = -ENOMEM;
+        goto err_cleanup_rx;
+    }
+
+    INIT_WORK(&adev->recovery_work, anarchy_connection_recovery_work);
+    tb_service_set_drvdata(svc, adev);
+
+    /* Initialize PCIe */
+    ret = anarchy_pcie_init(adev);
+    if (ret) {
+        dev_err(&svc->dev, "PCIe initialization failed: %d\n", ret);
+        goto err_cleanup_wq;
+    }
+
+    /* Update connection state */
+    atomic_set(&adev->conn_state, ANARCHY_CONN_CONNECTED);
+    dev_info(&svc->dev, "Anarchy eGPU service probe complete\n");
+
+    /* Update connection result */
+    log_connection_event(svc, true, ret);
+
+    return ret;
+
+err_cleanup_wq:
+    destroy_workqueue(adev->wq);
+err_cleanup_rx:
+    anarchy_ring_cleanup(adev, &adev->rx_ring);
+err_cleanup_tx:
+    anarchy_ring_cleanup(adev, &adev->tx_ring);
+err_clear_global:
+    global_adev = NULL;
+    smp_wmb();
+    return ret;
+}
+
+static void anarchy_service_remove(struct tb_service *svc)
+{
+    struct anarchy_device *adev = tb_service_get_drvdata(svc);
+
+    if (!adev)
+        return;
+
+    dev_info(&svc->dev, "Removing Anarchy eGPU service\n");
+
+    /* Log disconnection */
+    log_connection_event(svc, false, 0);
+
+    /* Only proceed with full cleanup if we're in a stable state */
+    if (atomic_read(&adev->conn_state) == ANARCHY_CONN_CONNECTED) {
+        atomic_set(&adev->conn_state, ANARCHY_CONN_DISCONNECTING);
+
+        /* Stop rings with proper cleanup */
+        mutex_lock(&ring_mutex);
+        if (adev->tx_ring.ring) {
+            tb_ring_stop(adev->tx_ring.ring);
+            anarchy_ring_stop(adev, &adev->tx_ring);
+        }
+        if (adev->rx_ring.ring) {
+            tb_ring_stop(adev->rx_ring.ring);
+            anarchy_ring_stop(adev, &adev->rx_ring);
+        }
+        mutex_unlock(&ring_mutex);
+        
+        /* Clean up PCIe */
+        anarchy_pcie_exit(adev);
+
+        /* Clean up workqueue */
+        if (adev->wq) {
+            cancel_work_sync(&adev->recovery_work);
+            destroy_workqueue(adev->wq);
+            adev->wq = NULL;
+        }
+
+        atomic_set(&adev->conn_state, ANARCHY_CONN_DISCONNECTED);
+    }
+
+    dev_info(&svc->dev, "Anarchy eGPU service removed\n");
+
+    /* Clear global pointer with memory barrier */
+    smp_wmb();
+    global_adev = NULL;
+
+    devm_kfree(&svc->dev, adev);
+}
+
+int anarchy_tb_init(void)
+{
+	int ret;
+	
+	/* Use mutex to ensure atomic initialization */
+	if (!mutex_trylock(&init_mutex)) {
+		pr_warn("Anarchy eGPU: Initialization already in progress\n");
+		return -EAGAIN;
+	}
+	
+	/* Check if we're already initialized */
+	if (atomic_read(&init_count) > 0) {
+		mutex_unlock(&init_mutex);
+		pr_warn("Anarchy eGPU: Driver already initialized\n");
+		return -EALREADY;
+	}
+
+	/* Initialize the spinlock */
+	spin_lock_init(&usb4_state.lock);
+	
+	ret = tb_register_service_driver(&anarchy_service_driver);
+	if (ret == 0) {
+		atomic_inc(&init_count);
+		pr_info("Anarchy eGPU: Thunderbolt initialization complete\n");
+	} else {
+		pr_err("Anarchy eGPU: Failed to register service driver: %d\n", ret);
+	}
+	
+	mutex_unlock(&init_mutex);
+	return ret;
+}
+
+struct pcie_debug_info {
+    unsigned long last_state_change;
+    unsigned int current_state;
+    unsigned long link_errors;
+    unsigned long training_attempts;
+    unsigned long successful_trains;
+    unsigned int current_speed;
+    unsigned int current_width;
+    char last_error[128];
+    spinlock_t lock;
+};
+
+static struct pcie_debug_info pcie_debug = {
+    .current_state = PCIE_STATE_UNKNOWN,
+    .link_errors = 0,
+    .training_attempts = 0,
+    .successful_trains = 0,
+    .current_speed = 0,
+    .current_width = 0
+};
+
+static void log_pcie_error(struct anarchy_device *adev, const char *error_msg, int status)
+{
+    unsigned long flags;
+    
+    spin_lock_irqsave(&pcie_debug.lock, flags);
+    pcie_debug.link_errors++;
+    snprintf(pcie_debug.last_error, sizeof(pcie_debug.last_error),
+             "%s (status=%d)", error_msg, status);
+    spin_unlock_irqrestore(&pcie_debug.lock, flags);
+    
+    update_pcie_state(adev, PCIE_STATE_ERROR, pcie_debug.last_error);
+}
+
+/* PCIe link training implementation */
+static int anarchy_pcie_train_link(struct anarchy_device *adev)
+{
+    int ret;
+    u32 link_status;
+
+    /* Start link training */
+    anarchy_pcie_retrain_link(adev);  /* This function returns void */
+
+    /* Wait for link to stabilize */
+    msleep(100);
+
+    /* Check link status */
+    ret = anarchy_pcie_read_config(adev, PCI_EXP_LNKSTA, 4, &link_status);
+    if (ret) {
+        log_pcie_error(adev, "Failed to read link status", ret);
+        return ret;
+    }
+
+    /* Verify link is up */
+    if (!(link_status & PCI_EXP_LNKSTA_DLLLA)) {
+        log_pcie_error(adev, "Link training failed - link not active", -ETIMEDOUT);
+        return -ETIMEDOUT;
+    }
+
+    return 0;
+} 
