@@ -1259,11 +1259,12 @@ deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/thermal.o := \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/ring.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/gpu_emu_forward.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/bandwidth.h \
+  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/bandwidth_config.h \
 
 /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/thermal.o: $(deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/thermal.o)
 
 $(deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/thermal.o):
 
 /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/thermal.o: $(wildcard ./tools/objtool/objtool)
-#SYMVER init_thermal_monitoring 0x749a7927
-#SYMVER cleanup_thermal_monitoring 0x697d6718
+#SYMVER init_thermal_monitoring 0xbe7b3519
+#SYMVER cleanup_thermal_monitoring 0x55b1b592

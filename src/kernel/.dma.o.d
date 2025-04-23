@@ -308,6 +308,7 @@ dma.o: /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/dma.c \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/thermal_forward.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/gpu_emu_forward.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/bandwidth.h \
+ /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/bandwidth_config.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/dma.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/anarchy_device.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/dma_types.h \

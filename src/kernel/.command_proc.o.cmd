@@ -1240,6 +1240,7 @@ deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/command_proc.o := \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/thermal_forward.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/gpu_emu_forward.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/bandwidth.h \
+  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/bandwidth_config.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/command_types.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/dma_types.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/command_proc.h \
@@ -1251,7 +1252,7 @@ deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/command_proc.o := \
 $(deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/command_proc.o):
 
 /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/command_proc.o: $(wildcard ./tools/objtool/objtool)
-#SYMVER init_command_processor 0xd9dbc196
-#SYMVER cleanup_command_processor 0x19ad6454
-#SYMVER process_game_command 0x729b764e
-#SYMVER optimize_command_processing 0x1b8c6108
+#SYMVER init_command_processor 0xf62c59bc
+#SYMVER cleanup_command_processor 0xfcf157b5
+#SYMVER process_game_command 0x8da12c8a
+#SYMVER optimize_command_processing 0xbfb989c5

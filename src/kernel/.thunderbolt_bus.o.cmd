@@ -1090,4 +1090,4 @@ deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/thunderbolt_bus.o := \
 $(deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/thunderbolt_bus.o):
 
 /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/thunderbolt_bus.o: $(wildcard ./tools/objtool/objtool)
-#SYMVER tb_bus_type 0xdb799b22
+#SYMVER tb_bus_type 0x89feb8ad

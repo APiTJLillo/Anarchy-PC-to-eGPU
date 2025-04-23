@@ -354,3 +354,40 @@ int anarchy_pcie_enable_link(struct anarchy_device *adev)
     return 0;
 }
 EXPORT_SYMBOL_GPL(anarchy_pcie_enable_link);
+
+u64 anarchy_pcie_get_bandwidth_usage(struct anarchy_device *adev)
+{
+    u32 link_width, link_speed;
+    u64 bandwidth = 0;
+
+    if (!adev || !adev->pdev)
+        return 0;
+
+    /* Get current link width and speed */
+    pcie_capability_read_dword(adev->pdev, PCI_EXP_LNKSTA, &link_width);
+    link_width = (link_width & PCI_EXP_LNKSTA_NLW) >> PCI_EXP_LNKSTA_NLW_SHIFT;
+
+    pcie_capability_read_dword(adev->pdev, PCI_EXP_LNKSTA, &link_speed);
+    link_speed = link_speed & PCI_EXP_LNKSTA_CLS;
+
+    /* Calculate bandwidth in bytes/sec */
+    switch (link_speed) {
+    case 1: /* 2.5 GT/s */
+        bandwidth = 250000000ULL; /* 250 MB/s per lane */
+        break;
+    case 2: /* 5.0 GT/s */
+        bandwidth = 500000000ULL; /* 500 MB/s per lane */
+        break;
+    case 3: /* 8.0 GT/s */
+        bandwidth = 984600000ULL; /* ~985 MB/s per lane */
+        break;
+    case 4: /* 16.0 GT/s */
+        bandwidth = 1969000000ULL; /* ~1.97 GB/s per lane */
+        break;
+    default:
+        return 0;
+    }
+
+    return bandwidth * link_width;
+}
+EXPORT_SYMBOL_GPL(anarchy_pcie_get_bandwidth_usage);

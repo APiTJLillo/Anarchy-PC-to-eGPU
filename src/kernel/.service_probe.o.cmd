@@ -1241,6 +1241,7 @@ deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/service_probe.o := \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/thermal_forward.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/gpu_emu_forward.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/bandwidth.h \
+  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/bandwidth_config.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/common.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/types.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/gpu_config.h \
@@ -1262,5 +1263,5 @@ deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/service_probe.o := \
 $(deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/service_probe.o):
 
 /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/service_probe.o: $(wildcard ./tools/objtool/objtool)
-#SYMVER anarchy_service_probe 0x0b675d7d
-#SYMVER anarchy_service_remove 0x01453989
+#SYMVER anarchy_service_probe 0x514d04e8
+#SYMVER anarchy_service_remove 0x00a49eae

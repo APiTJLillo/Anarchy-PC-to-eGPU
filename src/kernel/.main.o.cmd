@@ -1233,6 +1233,7 @@ deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/main.o := \
   arch/x86/include/asm/delay.h \
   include/asm-generic/delay.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/types.h \
+  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/thunderbolt_driver.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/anarchy_device.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/anarchy_device_forward.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/pcie_forward.h \
@@ -1244,6 +1245,7 @@ deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/main.o := \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/thermal_forward.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/gpu_emu_forward.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/bandwidth.h \
+  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/bandwidth_config.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/service_pm.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/service_probe.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/common.h \
@@ -1257,6 +1259,4 @@ deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/main.o := \
 $(deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/main.o):
 
 /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/main.o: $(wildcard ./tools/objtool/objtool)
-#SYMVER anarchy_driver 0xeb1e1684
-#SYMVER power_limit 0x2cfdcdd4
-#SYMVER num_dma_channels 0xb62e9164
+#SYMVER anarchy_driver 0xa5e5474b

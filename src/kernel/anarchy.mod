@@ -1,6 +1,8 @@
 /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/main.o
 /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/thunderbolt.o
 /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/thunderbolt_bus.o
+/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/thunderbolt_driver.o
+/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/thunderbolt_service.o
 /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/ring.o
 /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/game_compat.o
 /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/thermal.o
@@ -16,3 +18,4 @@
 /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/perf_monitor.o
 /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/service_probe.o
 /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/gpu_power.o
+/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/service_pm.o

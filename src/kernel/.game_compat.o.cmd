@@ -1240,6 +1240,7 @@ deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/game_compat.o := \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/thermal_forward.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/gpu_emu_forward.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/bandwidth.h \
+  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/bandwidth_config.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/game_compat.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/game_compat_types.h \
 
@@ -1248,8 +1249,8 @@ deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/game_compat.o := \
 $(deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/game_compat.o):
 
 /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/game_compat.o: $(wildcard ./tools/objtool/objtool)
-#SYMVER init_game_compatibility 0x1e649a3c
-#SYMVER cleanup_game_compatibility 0x5c46c9a2
-#SYMVER init_game_specific 0x6a498787
-#SYMVER setup_game_memory_region 0x0eaf2d2c
-#SYMVER cleanup_game_memory_region 0x42df9773
+#SYMVER init_game_compatibility 0x671865da
+#SYMVER cleanup_game_compatibility 0x42ac71d3
+#SYMVER init_game_specific 0xa94d00c9
+#SYMVER setup_game_memory_region 0xf308d7e8
+#SYMVER cleanup_game_memory_region 0xd1013bb7

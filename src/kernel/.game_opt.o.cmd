@@ -1240,6 +1240,7 @@ deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/game_opt.o := \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/thermal_forward.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/gpu_emu_forward.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/bandwidth.h \
+  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/bandwidth_config.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/game_opt.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/command_proc.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/command_types.h \
@@ -1254,4 +1255,4 @@ deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/game_opt.o := \
 $(deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/game_opt.o):
 
 /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/game_opt.o: $(wildcard ./tools/objtool/objtool)
-#SYMVER anarchy_optimize_for_game 0xf1263ed7
+#SYMVER anarchy_optimize_for_game 0x67c4b91d

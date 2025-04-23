@@ -1,32 +1,30 @@
 #ifndef ANARCHY_THUNDERBOLT_REGS_H
 #define ANARCHY_THUNDERBOLT_REGS_H
 
-/* Thunderbolt register offsets */
-#define TB_CONTROL          0x0000
-#define TB_STATUS          0x0004
-#define TB_INTR_STATUS     0x0008
-#define TB_INTR_MASK       0x000C
-#define TB_CONFIG          0x0010
-#define TB_LINK_STATUS     0x0014
-#define TB_ERROR_STATUS    0x0018
-#define TB_ERROR_MASK      0x001C
-#define TB_RESET_CTRL      0x0020
-#define TB_POWER_CTRL      0x0024
+#include <linux/bits.h>
 
-/* Control register bits */
-#define TB_CONTROL_ENABLE  (1 << 0)
-#define TB_CONTROL_RESET   (1 << 1)
-#define TB_CONTROL_PWRDN   (1 << 2)
+/* Thunderbolt controller register offsets */
+#define TB_CONTROL        0x0000  /* Main control register */
+#define TB_RESET_CTRL    0x0004  /* Controller reset register */
+#define TB_POWER_CTRL    0x0008  /* Power control register */
+#define TB_STATUS        0x000C  /* Status register */
 
-/* Status register bits */
-#define TB_STATUS_READY    (1 << 0)
-#define TB_STATUS_LINK_UP  (1 << 1)
-#define TB_STATUS_ERROR    (1 << 2)
+/* Control register bit definitions */
+#define TB_CONTROL_ENABLE        BIT(0)  /* Enable controller */
+#define TB_CONTROL_INT_ENABLE    BIT(1)  /* Enable interrupts */
+#define TB_CONTROL_POWER_MGMT    BIT(2)  /* Enable power management */
+#define TB_CONTROL_SAFE_MODE     BIT(3)  /* Enable safe mode */
 
-/* Function declarations */
-u32 tb_read32(struct anarchy_device *adev, u32 reg);
-void tb_write32(struct anarchy_device *adev, u32 reg, u32 val);
-int anarchy_tb_init(struct anarchy_device *adev);
-void anarchy_tb_fini(struct anarchy_device *adev);
+/* Status register bit definitions */
+#define TB_STATUS_READY         BIT(0)  /* Controller is ready */
+#define TB_STATUS_ERROR         BIT(1)  /* Error condition present */
+#define TB_STATUS_POWER_GOOD    BIT(2)  /* Power is stable */
+#define TB_STATUS_LINK_UP       BIT(3)  /* Link is established */
+
+/* Error codes */
+#define TB_ERR_TIMEOUT         -ETIMEDOUT
+#define TB_ERR_INVALID_STATE   -EINVAL
+#define TB_ERR_NO_DEVICE      -ENODEV
+#define TB_ERR_IO             -EIO
 
 #endif /* ANARCHY_THUNDERBOLT_REGS_H */

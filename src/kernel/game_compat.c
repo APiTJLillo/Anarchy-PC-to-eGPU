@@ -9,7 +9,6 @@ struct game_memory_region *setup_game_memory_region(struct anarchy_device *adev,
                                                   size_t size, u32 flags)
 {
     struct game_memory_region *region;
-    int ret;
 
     region = kzalloc(sizeof(*region), GFP_KERNEL);
     if (!region)

@@ -1243,6 +1243,7 @@ deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/hotplug.o := \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/thermal_forward.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/gpu_emu_forward.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/bandwidth.h \
+  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/bandwidth_config.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/hotplug.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/game_opt.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/gpu_offsets.h \
@@ -1253,5 +1254,5 @@ deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/hotplug.o := \
 $(deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/hotplug.o):
 
 /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/hotplug.o: $(wildcard ./tools/objtool/objtool)
-#SYMVER anarchy_hotplug_init 0xc08211b5
-#SYMVER anarchy_hotplug_exit 0x885b45ee
+#SYMVER anarchy_hotplug_init 0x2eaa8b3a
+#SYMVER anarchy_hotplug_exit 0xb07eda8e

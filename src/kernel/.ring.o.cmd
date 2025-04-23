@@ -1243,6 +1243,7 @@ deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/ring.o := \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/thermal_forward.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/gpu_emu_forward.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/bandwidth.h \
+  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/bandwidth_config.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/common.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/types.h \
 
@@ -1251,9 +1252,9 @@ deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/ring.o := \
 $(deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/ring.o):
 
 /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/ring.o: $(wildcard ./tools/objtool/objtool)
-#SYMVER anarchy_ring_init 0xdc57bef5
-#SYMVER anarchy_ring_cleanup 0xb4a507ef
-#SYMVER anarchy_ring_start 0x0c738763
-#SYMVER anarchy_ring_stop 0x94fdaa16
-#SYMVER anarchy_ring_transfer 0x1e5a97dc
-#SYMVER anarchy_ring_complete 0x342961eb
+#SYMVER anarchy_ring_init 0xd3a5a9bb
+#SYMVER anarchy_ring_cleanup 0x3055a5d6
+#SYMVER anarchy_ring_start 0xfe3e3f50
+#SYMVER anarchy_ring_stop 0xc10146a0
+#SYMVER anarchy_ring_transfer 0xa4a06918
+#SYMVER anarchy_ring_complete 0xe0298b5d

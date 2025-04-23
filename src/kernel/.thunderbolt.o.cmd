@@ -1244,6 +1244,7 @@ deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/thunderbolt.o := \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/thermal_forward.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/gpu_emu_forward.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/bandwidth.h \
+  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/bandwidth_config.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/common.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/types.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/gpu_config.h \
@@ -1265,9 +1266,9 @@ deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/thunderbolt.o := \
 $(deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/thunderbolt.o):
 
 /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/thunderbolt.o: $(wildcard ./tools/objtool/objtool)
-#SYMVER tb_read32 0x4e9cd0b7
-#SYMVER tb_write32 0xf5cb27e3
-#SYMVER anarchy_tb_init 0x77a6d95f
-#SYMVER anarchy_tb_fini 0xb7183bbc
+#SYMVER tb_read32 0xc5826327
+#SYMVER tb_write32 0xd767d124
+#SYMVER anarchy_tb_init 0xe3f9a353
+#SYMVER anarchy_tb_fini 0x8232af10
 #SYMVER anarchy_thunderbolt_init 0xc0e718db
 #SYMVER anarchy_thunderbolt_cleanup 0x277a79c3

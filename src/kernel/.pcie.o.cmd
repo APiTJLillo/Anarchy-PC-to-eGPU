@@ -1243,6 +1243,7 @@ deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/pcie.o := \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/thermal_forward.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/gpu_emu_forward.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/bandwidth.h \
+  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/bandwidth_config.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/common.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/types.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/pcie_recovery.h \
@@ -1254,11 +1255,12 @@ deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/pcie.o := \
 $(deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/pcie.o):
 
 /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/pcie.o: $(wildcard ./tools/objtool/objtool)
-#SYMVER anarchy_pcie_init 0x51f05c06
-#SYMVER anarchy_pcie_exit 0xb56af4e7
-#SYMVER anarchy_pcie_disable 0xb3246d9f
-#SYMVER pcie_link_is_up 0x1bb65ca8
-#SYMVER anarchy_pcie_cleanup_state 0xd2584560
-#SYMVER anarchy_pcie_handle_error 0xb10ab2cf
-#SYMVER anarchy_pcie_init_state 0x163dd9cf
-#SYMVER anarchy_pcie_enable_link 0x57eb9766
+#SYMVER anarchy_pcie_init 0x440316dc
+#SYMVER anarchy_pcie_exit 0x3f64b632
+#SYMVER anarchy_pcie_disable 0x19253971
+#SYMVER pcie_link_is_up 0x92040dd1
+#SYMVER anarchy_pcie_cleanup_state 0xd353e16a
+#SYMVER anarchy_pcie_handle_error 0x1d66348c
+#SYMVER anarchy_pcie_init_state 0xbc67bc2a
+#SYMVER anarchy_pcie_enable_link 0x917fb2c4
+#SYMVER anarchy_pcie_get_bandwidth_usage 0xc1c057fa

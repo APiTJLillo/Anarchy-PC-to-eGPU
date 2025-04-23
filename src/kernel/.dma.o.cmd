@@ -1240,6 +1240,7 @@ deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/dma.o := \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/thermal_forward.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/gpu_emu_forward.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/bandwidth.h \
+  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/bandwidth_config.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/dma.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/dma_types.h \
 
@@ -1248,7 +1249,7 @@ deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/dma.o := \
 $(deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/dma.o):
 
 /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/dma.o: $(wildcard ./tools/objtool/objtool)
-#SYMVER anarchy_dma_set_device_priority 0xa44e9466
-#SYMVER anarchy_dma_transfer 0xfd2ce190
-#SYMVER anarchy_dma_transfer_priority 0x43dd6ca9
-#SYMVER anarchy_dma_cleanup 0xb6866063
+#SYMVER anarchy_dma_set_device_priority 0xdaffef5a
+#SYMVER anarchy_dma_transfer 0xd6d6c801
+#SYMVER anarchy_dma_transfer_priority 0x08e14ad8
+#SYMVER anarchy_dma_cleanup 0xc4c187fe

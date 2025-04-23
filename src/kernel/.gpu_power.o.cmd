@@ -1240,6 +1240,7 @@ deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/gpu_power.o := \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/thermal_forward.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/gpu_emu_forward.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/bandwidth.h \
+  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/bandwidth_config.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/gpu_power.h \
 
 /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/gpu_power.o: $(deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/gpu_power.o)
@@ -1247,7 +1248,7 @@ deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/gpu_power.o := \
 $(deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/gpu_power.o):
 
 /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/gpu_power.o: $(wildcard ./tools/objtool/objtool)
-#SYMVER anarchy_gpu_set_power_limit 0xbb4ae083
-#SYMVER anarchy_gpu_get_power_limit 0xab28756c
-#SYMVER anarchy_gpu_power_down 0x3123ae28
-#SYMVER anarchy_gpu_power_up 0x7a6626c4
+#SYMVER anarchy_gpu_set_power_limit 0xda850109
+#SYMVER anarchy_gpu_get_power_limit 0x95f27790
+#SYMVER anarchy_gpu_power_down 0xfdfea259
+#SYMVER anarchy_gpu_power_up 0xd8d87c9f

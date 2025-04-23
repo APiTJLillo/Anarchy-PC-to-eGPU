@@ -1244,6 +1244,7 @@ deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/dma_device.o := \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/thermal_forward.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/gpu_emu_forward.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/bandwidth.h \
+  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/bandwidth_config.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/dma.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/dma_types.h \
 
@@ -1252,8 +1253,8 @@ deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/dma_device.o := \
 $(deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/dma_device.o):
 
 /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/dma_device.o: $(wildcard ./tools/objtool/objtool)
-#SYMVER anarchy_dma_device_start_transfer 0x8055ba39
-#SYMVER anarchy_dma_device_set_burst_size 0x9c3b2942
-#SYMVER anarchy_dma_device_set_queue_depth 0xd8a13896
-#SYMVER anarchy_dma_device_enable_prefetch 0x79e6e222
-#SYMVER anarchy_dma_device_set_write_combining 0xe13ab5a6
+#SYMVER anarchy_dma_device_start_transfer 0xe6113082
+#SYMVER anarchy_dma_device_set_burst_size 0xe305f8ce
+#SYMVER anarchy_dma_device_set_queue_depth 0xb15d8baf
+#SYMVER anarchy_dma_device_enable_prefetch 0x0446b6cd
+#SYMVER anarchy_dma_device_set_write_combining 0xb3dd8e42

@@ -309,6 +309,7 @@ command_proc.o: \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/thermal_forward.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/gpu_emu_forward.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/bandwidth.h \
+ /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/bandwidth_config.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/command_types.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/dma_types.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/command_proc.h \

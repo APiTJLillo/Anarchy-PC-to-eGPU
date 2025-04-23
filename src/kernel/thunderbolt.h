@@ -5,6 +5,10 @@
 #include "forward.h"
 #include "anarchy_device.h"
 
+/* Function prototypes */
+int anarchy_thunderbolt_init(void);
+void anarchy_thunderbolt_cleanup(void);
+
 /* Anarchy service identification */
 #define ANARCHY_SERVICE_ID             0x44  /* Use single byte value */
 #define ANARCHY_SERVICE_VERSION        0x01

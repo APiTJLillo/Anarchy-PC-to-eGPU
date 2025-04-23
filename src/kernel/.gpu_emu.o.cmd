@@ -1241,6 +1241,7 @@ deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/gpu_emu.o := \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/thermal_forward.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/gpu_emu_forward.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/bandwidth.h \
+  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/bandwidth_config.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/gpu_power.h \
 
 /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/gpu_emu.o: $(deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/gpu_emu.o)
@@ -1248,20 +1249,20 @@ deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/gpu_emu.o := \
 $(deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/gpu_emu.o):
 
 /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/gpu_emu.o: $(wildcard ./tools/objtool/objtool)
-#SYMVER anarchy_gpu_get_clock 0x90d27167
-#SYMVER anarchy_gpu_get_mem_clock 0x76bb0972
-#SYMVER anarchy_gpu_get_power 0xf26ae2f4
-#SYMVER anarchy_gpu_get_temp 0xb79cebd8
-#SYMVER anarchy_gpu_get_fan 0x80ab5471
-#SYMVER anarchy_gpu_get_util 0x33e51e00
-#SYMVER anarchy_gpu_get_mem_util 0x39c10a4f
-#SYMVER anarchy_gpu_get_vram_used 0x1a06c149
-#SYMVER anarchy_gpu_set_fan_speed 0x4c706cf6
-#SYMVER anarchy_gpu_emu_set_power_limit 0x0472b1c1
-#SYMVER anarchy_gpu_set_clocks 0xf3619a50
-#SYMVER anarchy_gpu_emu_init 0x30659a12
-#SYMVER anarchy_gpu_emu_exit 0x113c5e2e
-#SYMVER anarchy_gpu_emu_start 0xb7adaefb
-#SYMVER anarchy_gpu_emu_stop 0xff81126d
-#SYMVER anarchy_gpu_emu_handle_mmio 0xbc86a607
-#SYMVER anarchy_gpu_emu_map_memory 0x88182476
+#SYMVER anarchy_gpu_get_clock 0x7644e8c3
+#SYMVER anarchy_gpu_get_mem_clock 0xc2565ad4
+#SYMVER anarchy_gpu_get_power 0x20bb922b
+#SYMVER anarchy_gpu_get_temp 0x262dd396
+#SYMVER anarchy_gpu_get_fan 0x4b30a6dc
+#SYMVER anarchy_gpu_get_util 0x838c5aff
+#SYMVER anarchy_gpu_get_mem_util 0x9a807a03
+#SYMVER anarchy_gpu_get_vram_used 0x5bd2e74c
+#SYMVER anarchy_gpu_set_fan_speed 0x8edee083
+#SYMVER anarchy_gpu_emu_set_power_limit 0xd1d53a6a
+#SYMVER anarchy_gpu_set_clocks 0x630d7e37
+#SYMVER anarchy_gpu_emu_init 0x8e147acf
+#SYMVER anarchy_gpu_emu_exit 0xbe41f600
+#SYMVER anarchy_gpu_emu_start 0x49ff82a4
+#SYMVER anarchy_gpu_emu_stop 0x6471c88a
+#SYMVER anarchy_gpu_emu_handle_mmio 0x07d5f352
+#SYMVER anarchy_gpu_emu_map_memory 0xaab33980

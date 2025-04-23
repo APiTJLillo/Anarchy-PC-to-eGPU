@@ -6,6 +6,7 @@
 #include <linux/workqueue.h>
 #include <linux/delay.h>
 #include "include/types.h"
+#include "include/thunderbolt_driver.h"
 #include "include/anarchy_device.h"
 #include "include/service_pm.h"
 #include "include/service_probe.h"
@@ -48,7 +49,7 @@ static const struct tb_service_id anarchy_service_table[] = {
         .protocol_id = 1,
         .protocol_version = 1,
     },
-    { }
+    { } /* Sentinel */
 };
 
 /* Service driver structure */
@@ -86,55 +87,31 @@ static int __init anarchy_init(void)
 {
     int ret;
 
-    pr_info("Anarchy eGPU: Initializing mobile RTX 4090 driver\n");
-
-    /* Register the driver */
-    ret = driver_register(&anarchy_driver);
-    if (ret) {
-        pr_err("Failed to register anarchy driver\n");
-        return ret;
-    }
-
-    /* Initialize Thunderbolt subsystem */
     ret = anarchy_thunderbolt_init();
     if (ret) {
-        pr_err("Failed to initialize Thunderbolt subsystem\n");
-        driver_unregister(&anarchy_driver);
+        pr_err("Failed to initialize thunderbolt: %d\n", ret);
         return ret;
     }
 
-    /* Register the service driver */
-    ret = tb_register_service_driver(&anarchy_service_driver);
+    ret = tb_service_driver_register(&anarchy_thunderbolt_driver);
     if (ret) {
-        pr_err("Failed to register anarchy service driver\n");
+        pr_err("Failed to register thunderbolt driver: %d\n", ret);
         anarchy_thunderbolt_cleanup();
-        driver_unregister(&anarchy_driver);
         return ret;
     }
 
-    pr_info("Anarchy eGPU: Mobile RTX 4090 driver initialized\n");
-    pr_info("Power limit: %dW, DMA channels: %d\n", power_limit, num_dma_channels);
-    pr_info("Waiting for USB4/TB4 connection from handheld device...\n");
     return 0;
 }
 
-/* Module cleanup */
 static void __exit anarchy_exit(void)
 {
-    tb_unregister_service_driver(&anarchy_service_driver);
+    tb_service_driver_unregister(&anarchy_thunderbolt_driver);
     anarchy_thunderbolt_cleanup();
-    driver_unregister(&anarchy_driver);
-    pr_info("Anarchy eGPU: Unloading driver\n");
 }
 
 module_init(anarchy_init);
 module_exit(anarchy_exit);
 
-/* Export module parameters */
-EXPORT_SYMBOL_GPL(power_limit);
-EXPORT_SYMBOL_GPL(num_dma_channels);
-
 MODULE_LICENSE("GPL");
-MODULE_AUTHOR("Anarchy eGPU Development Team");
-MODULE_DESCRIPTION("Mobile RTX 4090 eGPU Driver");
-MODULE_VERSION("0.1.0");
+MODULE_AUTHOR("Anarchy eGPU Team");
+MODULE_DESCRIPTION("Anarchy eGPU Driver");

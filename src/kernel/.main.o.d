@@ -299,6 +299,7 @@ main.o: /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/main.c \
  include/linux/delay.h arch/x86/include/asm/delay.h \
  include/asm-generic/delay.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/types.h \
+ /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/thunderbolt_driver.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/anarchy_device.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/anarchy_device_forward.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/pcie_forward.h \
@@ -310,6 +311,7 @@ main.o: /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/main.c \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/thermal_forward.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/gpu_emu_forward.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/bandwidth.h \
+ /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/bandwidth_config.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/service_pm.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/anarchy_device.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/service_probe.h \

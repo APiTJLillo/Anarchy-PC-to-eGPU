@@ -309,4 +309,5 @@ gpu_emu.o: /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/gpu_emu.c \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/thermal_forward.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/gpu_emu_forward.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/bandwidth.h \
+ /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/bandwidth_config.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/gpu_power.h

@@ -1,9 +1,10 @@
-# Kernel module name and objects
 obj-m := anarchy.o
 anarchy-objs := \
 	main.o \
 	thunderbolt.o \
 	thunderbolt_bus.o \
+	thunderbolt_driver.o \
+	thunderbolt_service.o \
 	ring.o \
 	game_compat.o \
 	thermal.o \
@@ -18,11 +19,15 @@ anarchy-objs := \
 	gpu_emu.o \
 	perf_monitor.o \
 	service_probe.o \
-	gpu_power.o
+	gpu_power.o \
+	service_pm.o
 
-# Include Thunderbolt module symbols
-KBUILD_EXTRA_SYMBOLS := $(src)/Module.symvers.thunderbolt
+KBUILD_EXTRA_SYMBOLS := $(shell find /lib/modules/$(shell uname -r) -name Module.symvers -type f)
+KDIR := /lib/modules/$(shell uname -r)/build
+PWD := $(shell pwd)
 
-modules:
-	cp $(src)/Module.symvers.thunderbolt $(src)/Module.symvers
-	$(MAKE) -C $(KERNEL_SRC) M=$(PWD) modules
+default:
+	$(MAKE) -C $(KDIR) M=$(PWD) modules
+
+clean:
+	$(MAKE) -C $(KDIR) M=$(PWD) clean

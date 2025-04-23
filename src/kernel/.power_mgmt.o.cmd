@@ -1243,6 +1243,7 @@ deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/power_mgmt.o := \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/thermal_forward.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/gpu_emu_forward.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/bandwidth.h \
+  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/bandwidth_config.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/gpu_power.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/gpu_offsets.h \
 
@@ -1251,9 +1252,9 @@ deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/power_mgmt.o := \
 $(deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/power_mgmt.o):
 
 /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/power_mgmt.o: $(wildcard ./tools/objtool/objtool)
-#SYMVER anarchy_power_init 0x06bdeddf
-#SYMVER anarchy_power_exit 0xbd1f7dbb
-#SYMVER anarchy_power_set_profile 0xa594558a
-#SYMVER anarchy_power_get_profile 0x8ac7e0d9
-#SYMVER anarchy_power_set_fan_speed 0x982c5c9d
-#SYMVER anarchy_power_set_power_limit 0x984aeaf1
+#SYMVER anarchy_power_init 0xd4fbc475
+#SYMVER anarchy_power_exit 0x2c1ba1a0
+#SYMVER anarchy_power_set_profile 0xa594076f
+#SYMVER anarchy_power_get_profile 0x4f5b8381
+#SYMVER anarchy_power_set_fan_speed 0x4343d781
+#SYMVER anarchy_power_set_power_limit 0x424632c8

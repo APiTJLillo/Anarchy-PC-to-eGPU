@@ -15,6 +15,7 @@
 #include "thermal_forward.h"
 #include "gpu_emu_forward.h"
 #include "bandwidth.h"
+#include "bandwidth_config.h"
 
 /* Main device structure */
 struct anarchy_device {

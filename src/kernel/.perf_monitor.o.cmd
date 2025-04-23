@@ -1243,6 +1243,7 @@ deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/perf_monitor.o := \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/thermal_forward.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/gpu_emu_forward.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/bandwidth.h \
+  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/bandwidth_config.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/gpu_config.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/pcie_state.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/perf_regs.h \
@@ -1255,10 +1256,10 @@ deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/perf_monitor.o := \
 $(deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/perf_monitor.o):
 
 /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/perf_monitor.o: $(wildcard ./tools/objtool/objtool)
-#SYMVER anarchy_perf_exit 0x60ecd5b1
-#SYMVER anarchy_perf_init 0x84767d50
-#SYMVER anarchy_perf_start 0x249bd05b
-#SYMVER anarchy_perf_stop 0xceaf1bd3
-#SYMVER anarchy_perf_get_state 0xbc3c9ef2
-#SYMVER init_performance_monitoring 0x0299e168
-#SYMVER cleanup_performance_monitoring 0x1c457e28
+#SYMVER anarchy_perf_exit 0xbc28cc40
+#SYMVER anarchy_perf_init 0xc74f6cae
+#SYMVER anarchy_perf_start 0xa2af1e56
+#SYMVER anarchy_perf_stop 0x12dbc24c
+#SYMVER anarchy_perf_get_state 0x8ca5af63
+#SYMVER init_performance_monitoring 0x28b709ab
+#SYMVER cleanup_performance_monitoring 0x98985af1

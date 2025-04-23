@@ -1240,6 +1240,7 @@ deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/device.o := \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/thermal_forward.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/gpu_emu_forward.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/bandwidth.h \
+  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/bandwidth_config.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/common.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/types.h \
   /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/pcie_state.h \
@@ -1249,7 +1250,7 @@ deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/device.o := \
 $(deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/device.o):
 
 /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/device.o: $(wildcard ./tools/objtool/objtool)
-#SYMVER anarchy_device_init 0x8604132a
-#SYMVER anarchy_device_exit 0xa02bccd9
-#SYMVER anarchy_device_suspend 0x6d37c8ad
-#SYMVER anarchy_device_resume 0x85df21e4
+#SYMVER anarchy_device_init 0xa22610af
+#SYMVER anarchy_device_exit 0xeb4e1b9b
+#SYMVER anarchy_device_suspend 0x57f2c88e
+#SYMVER anarchy_device_resume 0x427aba98
