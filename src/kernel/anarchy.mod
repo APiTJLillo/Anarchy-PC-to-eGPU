@@ -16,6 +16,3 @@
 /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/perf_monitor.o
 /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/service_probe.o
 /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/gpu_power.o
-/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/bandwidth.o
-/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/pcie_link.o
-/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/pcie_mon.o

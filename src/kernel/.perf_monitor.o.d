@@ -317,4 +317,5 @@ perf_monitor.o: \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/perf_regs.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/gpu_offsets.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/gpu_power.h \
+ /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/anarchy_device.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/pcie_mon.h

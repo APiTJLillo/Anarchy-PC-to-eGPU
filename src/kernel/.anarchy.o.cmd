@@ -1,0 +1,1 @@
+savedcmd_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/anarchy.o := ld -m elf_x86_64 -z noexecstack --no-warn-rwx-segments   -r -o /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/anarchy.o @/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/anarchy.mod 

@@ -1,7 +1,8 @@
 #include <linux/module.h>
 #include <linux/kernel.h>
-#include "include/anarchy_device.h"
+#include <linux/slab.h>
 #include "include/gpu_emu.h"
+#include "include/gpu_power.h"  // Added for GPU_POWER_LIMIT_* constants
 
 /* GPU Access Functions */
 u32 anarchy_gpu_get_clock(struct anarchy_device *adev)
@@ -80,17 +81,16 @@ int anarchy_gpu_set_fan_speed(struct anarchy_device *adev, u32 speed)
 }
 EXPORT_SYMBOL_GPL(anarchy_gpu_set_fan_speed);
 
-int anarchy_gpu_set_power_limit(struct anarchy_device *adev, u32 limit)
+int anarchy_gpu_emu_set_power_limit(struct anarchy_device *adev, u32 limit)
 {
     if (!adev || !adev->gpu_emu)
         return -EINVAL;
-    /* Assuming max power limit of 450W */
-    if (limit > 450)
+    if (limit < GPU_POWER_LIMIT_MIN || limit > GPU_POWER_LIMIT_MAX)
         return -EINVAL;
     adev->gpu_emu->perf.power_draw = limit;
     return 0;
 }
-EXPORT_SYMBOL_GPL(anarchy_gpu_set_power_limit);
+EXPORT_SYMBOL_GPL(anarchy_gpu_emu_set_power_limit);
 
 int anarchy_gpu_set_clocks(struct anarchy_device *adev, u32 gpu_clock, u32 mem_clock)
 {
@@ -132,7 +132,7 @@ int anarchy_gpu_emu_init(struct anarchy_device *adev)
 }
 EXPORT_SYMBOL_GPL(anarchy_gpu_emu_init);
 
-void anarchy_gpu_emu_cleanup(struct anarchy_device *adev)
+void anarchy_gpu_emu_exit(struct anarchy_device *adev)
 {
     if (!adev || !adev->gpu_emu)
         return;
@@ -140,7 +140,7 @@ void anarchy_gpu_emu_cleanup(struct anarchy_device *adev)
     kfree(adev->gpu_emu);
     adev->gpu_emu = NULL;
 }
-EXPORT_SYMBOL_GPL(anarchy_gpu_emu_cleanup);
+EXPORT_SYMBOL_GPL(anarchy_gpu_emu_exit);
 
 int anarchy_gpu_emu_start(struct anarchy_device *adev)
 {
@@ -151,22 +151,19 @@ int anarchy_gpu_emu_start(struct anarchy_device *adev)
 }
 EXPORT_SYMBOL_GPL(anarchy_gpu_emu_start);
 
-void anarchy_gpu_emu_stop(struct anarchy_device *adev)
+int anarchy_gpu_emu_stop(struct anarchy_device *adev)
 {
     if (!adev || !adev->gpu_emu)
-        return;
+        return -EINVAL;
     adev->gpu_emu->state = GPU_EMU_STATE_DISABLED;
+    return 0;
 }
 EXPORT_SYMBOL_GPL(anarchy_gpu_emu_stop);
 
-int anarchy_gpu_emu_handle_mmio(struct anarchy_device *adev, u32 offset, u32 *value, bool is_write)
-{
-    struct gpu_emu_interface *emu;
-    
-    if (!adev || !adev->gpu_emu || !value)
+int anarchy_gpu_emu_handle_mmio(struct gpu_emu_interface *emu, u32 offset, u32 *value, bool is_write)
+{    
+    if (!emu || !value)
         return -EINVAL;
-
-    emu = adev->gpu_emu;
     
     if (is_write) {
         switch (offset) {
@@ -220,7 +217,7 @@ int anarchy_gpu_emu_handle_mmio(struct anarchy_device *adev, u32 offset, u32 *va
 }
 EXPORT_SYMBOL_GPL(anarchy_gpu_emu_handle_mmio);
 
-int anarchy_gpu_emu_map_memory(struct anarchy_device *adev, u64 addr, u64 size)
+int anarchy_gpu_emu_map_memory(struct anarchy_device *adev, u64 addr, size_t size)
 {
     if (!adev || !adev->gpu_emu)
         return -EINVAL;
@@ -233,4 +230,4 @@ EXPORT_SYMBOL_GPL(anarchy_gpu_emu_map_memory);
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Anarchy eGPU Team");
-MODULE_DESCRIPTION("GPU Emulation Layer for Anarchy eGPU Driver"); 
+MODULE_DESCRIPTION("GPU Emulation Layer for Anarchy eGPU Driver");

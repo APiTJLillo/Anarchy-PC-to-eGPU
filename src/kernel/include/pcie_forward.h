@@ -15,8 +15,16 @@ enum anarchy_pcie_link_state {
     ANARCHY_PCIE_STATE_ERROR,
     ANARCHY_PCIE_STATE_NORMAL,
     ANARCHY_PCIE_STATE_RECOVERY,
+    ANARCHY_PCIE_STATE_INIT,
     ANARCHY_PCIE_STATE_LINK_DOWN
 };
+
+/* PCIe ASPM policies */
+#define ANARCHY_ASPM_DISABLED      0x0  /* ASPM disabled */
+#define ANARCHY_ASPM_L0s          0x1  /* L0s enabled */
+#define ANARCHY_ASPM_L1           0x2  /* L1 enabled */
+#define ANARCHY_ASPM_L0sL1        0x3  /* L0s and L1 enabled */
+#define ANARCHY_ASPM_PERFORMANCE  0x4  /* Performance optimized policy */
 
 /* PCIe link speeds */
 enum anarchy_pcie_speed {
@@ -54,4 +62,4 @@ enum anarchy_pcie_error_type {
 /* PCIe constants */
 #define ANARCHY_PCIE_MAX_RETRIES 3
 
-#endif /* ANARCHY_PCIE_FORWARD_H */ 
+#endif /* ANARCHY_PCIE_FORWARD_H */

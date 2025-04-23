@@ -112,3 +112,26 @@ EXPORT_SYMBOL_GPL(anarchy_dma_set_device_priority);
 EXPORT_SYMBOL_GPL(anarchy_dma_transfer);
 EXPORT_SYMBOL_GPL(anarchy_dma_transfer_priority);
 EXPORT_SYMBOL_GPL(anarchy_dma_cleanup);
+
+/* Optimize DMA transfers based on device capabilities */
+void anarchy_dma_optimize_transfers(struct anarchy_device *adev)
+{
+    /* Set optimal DMA transfer parameters based on PCIe link capabilities */
+    unsigned int mps = pcie_get_mps(adev->pdev);  // Max payload size
+    unsigned int mrrs = pcie_get_readrq(adev->pdev); // Max read request size
+    
+    /* Configure DMA channels for optimal performance */
+    if (mps >= 256 && mrrs >= 512) {
+        /* High bandwidth configuration */
+        anarchy_dma_device_set_burst_size(adev, 256);
+        anarchy_dma_device_set_queue_depth(adev, 32);
+    } else {
+        /* Conservative configuration */
+        anarchy_dma_device_set_burst_size(adev, 128);
+        anarchy_dma_device_set_queue_depth(adev, 16);
+    }
+
+    /* Enable DMA optimization features */
+    anarchy_dma_device_enable_prefetch(adev);
+    anarchy_dma_device_set_write_combining(adev, true);
+}

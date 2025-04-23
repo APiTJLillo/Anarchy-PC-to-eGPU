@@ -1,0 +1,1 @@
+savedcmd_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/modules.order := {   echo /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/anarchy.o; :; } > /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/modules.order

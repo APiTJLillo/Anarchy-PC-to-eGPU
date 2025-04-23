@@ -298,22 +298,23 @@ pcie.o: /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/pcie.c \
  include/linux/dma-mapping.h include/linux/dma-direction.h \
  include/linux/delay.h arch/x86/include/asm/delay.h \
  include/asm-generic/delay.h \
- /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/types.h \
- /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/common.h \
- /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/forward.h \
- /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/types.h \
- /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/pcie_forward.h \
- /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/pcie_types.h \
- /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/pcie_forward.h \
- /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/pcie_state.h \
- /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/pcie_types.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/anarchy_device.h \
  include/linux/thunderbolt.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/anarchy_device_forward.h \
+ /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/pcie_forward.h \
+ /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/pcie_types.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/ring.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/power_mgmt.h \
+ /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/forward.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/perf_monitor.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/thermal_forward.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/gpu_emu_forward.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/bandwidth.h \
+ /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/common.h \
+ /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/types.h \
+ /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/pcie_types.h \
+ /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/pcie_forward.h \
+ /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/pcie_recovery.h \
+ /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/anarchy_device.h \
+ /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/pcie_state.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/pcie.h

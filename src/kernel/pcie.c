@@ -1,12 +1,12 @@
 #include <linux/module.h>
 #include <linux/pci.h>
 #include <linux/delay.h>
-#include "include/types.h"
-#include "include/common.h"
-#include "include/pcie_forward.h"
-#include "include/pcie_types.h"
-#include "include/pcie_state.h"
 #include "include/anarchy_device.h"
+#include "include/common.h"
+#include "include/pcie_types.h"
+#include "include/pcie_forward.h"
+#include "include/pcie_recovery.h"
+#include "include/pcie_state.h"
 #include "pcie.h"
 
 /* PCI Express Link Status register bits */
@@ -129,21 +129,12 @@ void anarchy_pcie_disable_link(struct anarchy_device *adev)
 
 static void anarchy_pcie_recovery_work(struct work_struct *work)
 {
-    struct anarchy_pcie_recovery *recovery = container_of(work,
-                                                        struct anarchy_pcie_recovery,
-                                                        recovery_work);
-    struct anarchy_pcie_state *pcie = container_of(recovery,
-                                                  struct anarchy_pcie_state,
-                                                  recovery);
-    struct anarchy_device *adev = pcie->adev;
+    struct anarchy_device *adev = container_of(work, struct anarchy_device,
+                                             pcie_state.recovery.recovery_work);
     int ret;
 
-    /* First try standard PCIe recovery */
-    ret = pcie_set_link_speed(adev, ANARCHY_PCIE_GEN4);
-    if (ret)
-        goto try_tb_recovery;
-
-    ret = pcie_set_link_width(adev, ANARCHY_PCIE_x8);
+    /* Attempt PCIe link recovery */
+    ret = anarchy_pcie_train_link(adev);
     if (ret)
         goto try_tb_recovery;
 
@@ -153,22 +144,38 @@ static void anarchy_pcie_recovery_work(struct work_struct *work)
     if (pcie_link_is_up(adev->pdev)) {
         ret = anarchy_pcie_check_link_config(adev);
         if (ret == 0) {
-            pcie->state = ANARCHY_PCIE_STATE_NORMAL;
+            adev->pcie_state.state = ANARCHY_PCIE_STATE_NORMAL;
             return;
         }
     }
 
 try_tb_recovery:
     /* If standard recovery failed, try Thunderbolt-specific recovery */
-    if (tb_service_reset(adev->service)) {
-        msleep(500);
-        ret = anarchy_pcie_train_link(adev);
-        if (ret == 0)
-            return;
+    ret = tb_service_reset(adev->service);
+    if (ret) {
+        dev_err(adev->dev, "Thunderbolt service reset failed: %d\n", ret);
+        goto recovery_failed;
     }
 
-    /* Recovery failed */
-    pcie->state = ANARCHY_PCIE_STATE_ERROR;
+    /* Wait for Thunderbolt link to stabilize */
+    msleep(500);
+
+    /* Try PCIe link training again */
+    ret = anarchy_pcie_train_link(adev);
+    if (ret == 0) {
+        if (pcie_link_is_up(adev->pdev)) {
+            ret = anarchy_pcie_check_link_config(adev);
+            if (ret == 0) {
+                adev->pcie_state.state = ANARCHY_PCIE_STATE_NORMAL;
+                return;
+            }
+        }
+    }
+
+recovery_failed:
+    /* All recovery attempts failed */
+    dev_err(adev->dev, "PCIe recovery failed after Thunderbolt reset\n");
+    adev->pcie_state.state = ANARCHY_PCIE_STATE_ERROR;
 }
 
 void anarchy_pcie_handle_error(struct anarchy_device *adev,
@@ -241,9 +248,41 @@ EXPORT_SYMBOL_GPL(pcie_link_is_up);
 
 int anarchy_pcie_optimize_settings(struct anarchy_device *adev)
 {
-    // ... existing implementation ...
+    struct pci_dev *pdev = adev->pdev;
+    u16 devctl;
+    int ret;
+
+    if (!pdev)
+        return -EINVAL;
+
+    /* Configure PCIe link for maximum performance */
+    ret = pci_disable_link_state(pdev, PCIE_LINK_STATE_L0S | PCIE_LINK_STATE_L1 |
+                                PCIE_LINK_STATE_CLKPM);
+    if (ret)
+        dev_warn(&pdev->dev, "Failed to disable PCIe power management: %d\n", ret);
+
+    /* Read current device control register */
+    ret = pcie_capability_read_word(pdev, PCI_EXP_DEVCTL, &devctl);
+    if (ret) {
+        dev_warn(&pdev->dev, "Failed to read PCIe device control: %d\n", ret);
+        return ret;
+    }
+
+    /* Enable performance features:
+     * - Maximum read request size
+     * - Extended tags 
+     * - Relaxed ordering
+     * - No snoop
+     */
+    devctl |= (PCI_EXP_DEVCTL_READRQ | PCI_EXP_DEVCTL_EXT_TAG |
+               PCI_EXP_DEVCTL_RELAX_EN | PCI_EXP_DEVCTL_NOSNOOP_EN);
+
+    ret = pcie_capability_write_word(pdev, PCI_EXP_DEVCTL, devctl);
+    if (ret)
+        dev_warn(&pdev->dev, "Failed to write PCIe device control: %d\n", ret);
+
+    return ret;
 }
-EXPORT_SYMBOL_GPL(anarchy_pcie_optimize_settings);
 
 void anarchy_pcie_cleanup_state(struct anarchy_device *adev)
 {
@@ -264,7 +303,20 @@ EXPORT_SYMBOL_GPL(anarchy_pcie_handle_error);
 
 int anarchy_pcie_init_state(struct anarchy_device *adev)
 {
-    // ... existing implementation ...
+    if (!adev)
+        return -EINVAL;
+
+    /* Initialize PCIe state */
+    adev->pcie_state.state = ANARCHY_PCIE_STATE_INIT;
+    adev->pcie_state.speed = ANARCHY_PCIE_GEN1;
+    adev->pcie_state.link_width = ANARCHY_PCIE_x1;
+
+    /* Initialize recovery work */
+    INIT_WORK(&adev->pcie_state.recovery.recovery_work,
+              anarchy_pcie_recovery_work);
+
+    /* Check initial link configuration */
+    return anarchy_pcie_check_link_config(adev);
 }
 EXPORT_SYMBOL_GPL(anarchy_pcie_init_state);
 

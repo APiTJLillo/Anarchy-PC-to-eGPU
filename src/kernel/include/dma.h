@@ -21,4 +21,10 @@ int anarchy_dma_set_device_priority(struct anarchy_device *adev, int channel,
 /* DMA optimization functions */
 void anarchy_dma_optimize_transfers(struct anarchy_device *adev);
 
+/* DMA device configuration functions */
+void anarchy_dma_device_set_burst_size(struct anarchy_device *adev, int size);
+void anarchy_dma_device_set_queue_depth(struct anarchy_device *adev, int depth);
+void anarchy_dma_device_enable_prefetch(struct anarchy_device *adev);
+void anarchy_dma_device_set_write_combining(struct anarchy_device *adev, bool enable);
+
 #endif /* _ANARCHY_DMA_H_ */

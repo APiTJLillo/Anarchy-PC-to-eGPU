@@ -18,60 +18,11 @@ anarchy-objs := \
 	gpu_emu.o \
 	perf_monitor.o \
 	service_probe.o \
-	gpu_power.o \
-	bandwidth.o \
-	pcie_link.o \
-	pcie_mon.o
+	gpu_power.o
 
-# Kernel build directory and current directory
-KDIR := /lib/modules/$(shell uname -r)/build
-PWD := $(shell pwd)
+# Include Thunderbolt module symbols
+KBUILD_EXTRA_SYMBOLS := $(src)/Module.symvers.thunderbolt
 
-# Include paths
-ccflags-y := -I$(src) -DDEBUG
-
-# Debug flags
-ccflags-$(CONFIG_ANARCHY_EGPU_DEBUG) += -DDEBUG
-
-# Configuration
-CONFIG_ANARCHY_EGPU=m
-CONFIG_ANARCHY_EGPU_DEBUG=y
-
-# Architecture detection
-ARCH := $(shell uname -m | sed -e s/i.86/x86/ -e s/x86_64/x86/)
-
-# Kernel build setup
-EXTRA_CFLAGS += -I$(src)/include
-EXTRA_CFLAGS += -I$(KDIR)/arch/$(ARCH)/include
-EXTRA_CFLAGS += -I$(KDIR)/arch/$(ARCH)/include/generated
-EXTRA_CFLAGS += -I$(KDIR)/include/uapi
-EXTRA_CFLAGS += -I$(KDIR)/include/generated/uapi
-
-# Module versioning
-EXTRA_CFLAGS += -DDRIVER_VERSION=\"0.1.0\"
-
-# Enable kernel module hardening
-EXTRA_CFLAGS += -fno-pic
-EXTRA_LDFLAGS += -z noexecstack
-
-# Suppress all warnings
-EXTRA_CFLAGS += -w
-
-# Add Thunderbolt module dependency
-KBUILD_EXTRA_SYMBOLS := $(KDIR)/Module.symvers
-
-all: gen_symvers
-	@$(MAKE) -s -C $(KDIR) M=$(PWD) modules 2>&1 | grep -v "warning:" | grep -v "note:" | grep -v "the compiler differs"
-
-gen_symvers:
-	@./gen_tb_symvers.sh
-
-clean:
-	@$(MAKE) -s -C $(KDIR) M=$(PWD) clean
-	@rm -f *.o *.ko *.mod.c *.mod.o *.symvers *.order
-
-install: all
-	@$(MAKE) -s -C $(KDIR) M=$(PWD) modules_install
-	@depmod -a
-
-.PHONY: all clean install gen_symvers
+modules:
+	cp $(src)/Module.symvers.thunderbolt $(src)/Module.symvers
+	$(MAKE) -C $(KERNEL_SRC) M=$(PWD) modules

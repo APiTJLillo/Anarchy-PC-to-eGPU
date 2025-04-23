@@ -18,13 +18,7 @@
 #define ANARCHY_PCIE_ERR_SPEED_DOWNGRADE  100
 #define ANARCHY_PCIE_ERR_WIDTH_DOWNGRADE  101
 
-/* PCIe recovery state */
-struct anarchy_pcie_recovery {
-    spinlock_t recovery_lock;
-    atomic_t retries;
-    struct work_struct recovery_work;
-    unsigned long last_down;
-};
+/* PCIe recovery state structure is defined in pcie_types.h */
 
 /* Function declarations */
 void anarchy_pcie_recovery_init(struct anarchy_device *adev);

@@ -1,4 +1,3 @@
-0x00000000	tb_bus_type	/lib/modules/$(uname -r)/kernel/drivers/thunderbolt/thunderbolt.ko	EXPORT_SYMBOL
-0x00000000	tb_service_driver_register	/lib/modules/$(uname -r)/kernel/drivers/thunderbolt/thunderbolt.ko	EXPORT_SYMBOL
-0x00000000	tb_service_driver_unregister	/lib/modules/$(uname -r)/kernel/drivers/thunderbolt/thunderbolt.ko	EXPORT_SYMBOL
-EOF 
+0x46e26b18	tb_bus_type	/lib/modules/6.11.0-9-generic/kernel/drivers/thunderbolt/thunderbolt.ko	EXPORT_SYMBOL
+0x2c941f64	tb_service_driver_register	/lib/modules/6.11.0-9-generic/kernel/drivers/thunderbolt/thunderbolt.ko	EXPORT_SYMBOL
+0x9842a74d	tb_service_driver_unregister	/lib/modules/6.11.0-9-generic/kernel/drivers/thunderbolt/thunderbolt.ko	EXPORT_SYMBOL

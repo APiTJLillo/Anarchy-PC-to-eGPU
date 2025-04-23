@@ -267,6 +267,7 @@ gpu_emu.o: /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/gpu_emu.c \
  include/linux/error-injection.h include/asm-generic/error-injection.h \
  arch/x86/include/asm/module.h include/asm-generic/module.h \
  arch/x86/include/asm/orc_types.h \
+ /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/gpu_emu.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/anarchy_device.h \
  include/linux/device.h include/linux/dev_printk.h \
  include/linux/energy_model.h include/linux/sched/cpufreq.h \
@@ -308,5 +309,4 @@ gpu_emu.o: /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/gpu_emu.c \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/thermal_forward.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/gpu_emu_forward.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/bandwidth.h \
- /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/gpu_emu.h \
- /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/anarchy_device.h
+ /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/gpu_power.h
