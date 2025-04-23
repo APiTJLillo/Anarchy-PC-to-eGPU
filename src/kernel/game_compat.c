@@ -19,7 +19,7 @@ struct game_memory_region *setup_game_memory_region(struct anarchy_device *adev,
     region->flags = flags;
 
     if (flags & REGION_FLAG_COHERENT) {
-        region->vaddr = dma_alloc_coherent(&adev->dev, size,
+        region->vaddr = dma_alloc_coherent(&adev->pdev->dev, size,
                                          &region->dma_addr, GFP_KERNEL);
         if (!region->vaddr) {
             kfree(region);
@@ -32,9 +32,9 @@ struct game_memory_region *setup_game_memory_region(struct anarchy_device *adev,
             return ERR_PTR(-ENOMEM);
         }
 
-        region->dma_addr = dma_map_single(&adev->dev, region->vaddr,
+        region->dma_addr = dma_map_single(&adev->pdev->dev, region->vaddr,
                                         size, DMA_BIDIRECTIONAL);
-        if (dma_mapping_error(&adev->dev, region->dma_addr)) {
+        if (dma_mapping_error(&adev->pdev->dev, region->dma_addr)) {
             kfree(region->vaddr);
             kfree(region);
             return ERR_PTR(-ENOMEM);
@@ -51,10 +51,10 @@ void cleanup_game_memory_region(struct anarchy_device *adev,
         return;
 
     if (region->flags & REGION_FLAG_COHERENT) {
-        dma_free_coherent(&adev->dev, region->size,
+        dma_free_coherent(&adev->pdev->dev, region->size,
                          region->vaddr, region->dma_addr);
     } else {
-        dma_unmap_single(&adev->dev, region->dma_addr,
+        dma_unmap_single(&adev->pdev->dev, region->dma_addr,
                         region->size, DMA_BIDIRECTIONAL);
         kfree(region->vaddr);
     }
@@ -126,20 +126,8 @@ void cleanup_game_compatibility(struct anarchy_device *adev)
     adev->compat_layer = NULL;
 }
 
-int anarchy_optimize_for_game(struct anarchy_device *adev, const char *game_name)
-{
-    int ret;
-
-    ret = init_game_compatibility(adev);
-    if (ret)
-        return ret;
-
-    return init_game_specific(adev, game_name);
-}
-
 EXPORT_SYMBOL_GPL(init_game_compatibility);
 EXPORT_SYMBOL_GPL(cleanup_game_compatibility);
 EXPORT_SYMBOL_GPL(init_game_specific);
 EXPORT_SYMBOL_GPL(setup_game_memory_region);
 EXPORT_SYMBOL_GPL(cleanup_game_memory_region);
-EXPORT_SYMBOL_GPL(anarchy_optimize_for_game);

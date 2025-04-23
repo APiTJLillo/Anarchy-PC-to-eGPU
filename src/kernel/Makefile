@@ -1,27 +1,37 @@
 # Kernel module name and objects
-obj-m += anarchy_egpu.o
-anarchy_egpu-objs := main.o thunderbolt.o pcie.o \
-                    command_proc.o dma.o game_compat.o \
-                    game_opt.o power_mgmt.o perf_monitor.o \
-                    usb4_device.o hotplug.o thermal.o bandwidth.o \
-                    device.o device_remove.o anarchy-perf.o
+obj-m := anarchy.o
+anarchy-objs := \
+	main.o \
+	thunderbolt.o \
+	thunderbolt_bus.o \
+	ring.o \
+	game_compat.o \
+	thermal.o \
+	hotplug.o \
+	power_mgmt.o \
+	game_opt.o \
+	dma.o \
+	dma_device.o \
+	command_proc.o \
+	pcie.o \
+	device.o \
+	gpu_emu.o \
+	perf_monitor.o \
+	service_probe.o \
+	gpu_power.o \
+	bandwidth.o \
+	pcie_link.o \
+	pcie_mon.o
 
 # Kernel build directory and current directory
 KDIR := /lib/modules/$(shell uname -r)/build
 PWD := $(shell pwd)
 
 # Include paths
-ccflags-y := -I$(src)/include -I$(src)/../include -I$(src)/../../include
+ccflags-y := -I$(src) -DDEBUG
 
 # Debug flags
 ccflags-$(CONFIG_ANARCHY_EGPU_DEBUG) += -DDEBUG
-
-# Warning flags
-ccflags-y += -Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers
-
-# Thunderbolt dependency
-CFLAGS_thunderbolt.o := -I$(src)/../../include -Wno-missing-braces
-ccflags-y += -I$(KDIR)/drivers/thunderbolt
 
 # Configuration
 CONFIG_ANARCHY_EGPU=m
@@ -44,15 +54,24 @@ EXTRA_CFLAGS += -DDRIVER_VERSION=\"0.1.0\"
 EXTRA_CFLAGS += -fno-pic
 EXTRA_LDFLAGS += -z noexecstack
 
-all:
-	$(MAKE) -C $(KDIR) M=$(PWD) modules
+# Suppress all warnings
+EXTRA_CFLAGS += -w
+
+# Add Thunderbolt module dependency
+KBUILD_EXTRA_SYMBOLS := $(KDIR)/Module.symvers
+
+all: gen_symvers
+	@$(MAKE) -s -C $(KDIR) M=$(PWD) modules 2>&1 | grep -v "warning:" | grep -v "note:" | grep -v "the compiler differs"
+
+gen_symvers:
+	@./gen_tb_symvers.sh
 
 clean:
-	$(MAKE) -C $(KDIR) M=$(PWD) clean
-	rm -f *.o *.ko *.mod.c *.mod.o *.symvers *.order
+	@$(MAKE) -s -C $(KDIR) M=$(PWD) clean
+	@rm -f *.o *.ko *.mod.c *.mod.o *.symvers *.order
 
 install: all
-	$(MAKE) -C $(KDIR) M=$(PWD) modules_install
-	depmod -a
+	@$(MAKE) -s -C $(KDIR) M=$(PWD) modules_install
+	@depmod -a
 
-.PHONY: all clean install
+.PHONY: all clean install gen_symvers

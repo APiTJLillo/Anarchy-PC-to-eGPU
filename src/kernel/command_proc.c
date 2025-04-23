@@ -61,6 +61,7 @@ int process_game_command(struct anarchy_device *adev, struct command_batch *batc
     struct command_processor *cp = adev->cmd_proc;
     unsigned long flags;
     int ret = 0;
+    int channel = 0;  /* Default to channel 0 for texture commands */
 
     if (!cp || !batch)
         return -EINVAL;
@@ -69,9 +70,8 @@ int process_game_command(struct anarchy_device *adev, struct command_batch *batc
     if (batch->category == CMD_CAT_TEXTURE &&
         (batch->flags & CMD_FLAG_LOWLAT)) {
         
-        ret = anarchy_dma_transfer_priority(adev, batch->data,
-                                          batch->total_size,
-                                          PRIORITY_TEXTURE);
+        ret = anarchy_dma_set_device_priority(adev, channel,
+                                             ANARCHY_DMA_PRIO_TEXTURE);
         if (ret)
             return ret;
     }

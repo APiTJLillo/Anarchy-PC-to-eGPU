@@ -162,6 +162,12 @@ void cleanup_performance_monitoring(struct anarchy_device *adev)
     anarchy_perf_exit(adev);
 }
 
+void anarchy_perf_exit(struct anarchy_device *adev)
+{
+    // ... existing implementation ...
+}
+EXPORT_SYMBOL_GPL(anarchy_perf_exit);
+
 EXPORT_SYMBOL_GPL(anarchy_perf_init);
 EXPORT_SYMBOL_GPL(anarchy_perf_start);
 EXPORT_SYMBOL_GPL(anarchy_perf_stop);

@@ -300,30 +300,22 @@ main.o: /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/main.c \
  include/asm-generic/delay.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/types.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/anarchy_device.h \
- /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/forward.h \
- /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/pcie_state.h \
+ /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/anarchy_device_forward.h \
+ /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/pcie_forward.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/pcie_types.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/ring.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/power_mgmt.h \
+ /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/forward.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/perf_monitor.h \
+ /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/thermal_forward.h \
+ /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/gpu_emu_forward.h \
+ /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/bandwidth.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/service_pm.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/anarchy_device.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/service_probe.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/common.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/types.h \
- /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/gpu_config.h \
- /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/gpu_emu.h \
- /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/game_compat.h \
- /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/game_compat_types.h \
- /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/command_proc.h \
- /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/command_types.h \
- /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/usb4_config.h \
- /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/thermal.h \
- include/linux/thermal.h include/linux/of.h include/linux/property.h \
- include/uapi/linux/thermal.h \
- /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/pcie.h \
- /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/common.h \
  /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/gpu_power.h \
- /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/thunderbolt.h \
- /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/forward.h \
- /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/anarchy_device.h
+ /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/anarchy_driver.h \
+ /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/module_params.h \
+ /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/include/thunderbolt_service.h

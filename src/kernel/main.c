@@ -11,42 +11,51 @@
 #include "include/service_probe.h"
 #include "include/common.h"
 #include "include/gpu_power.h"
-#include "thunderbolt.h"
+#include "include/anarchy_driver.h"
+#include "include/module_params.h"
+#include "include/thunderbolt_service.h"
 
 /* Module parameters */
-int power_limit __read_mostly = 175;
-int num_dma_channels __read_mostly = 12;
+int power_limit = 175;  /* Default power limit in watts */
+int num_dma_channels = 8;  /* Default number of DMA channels */
 
 module_param(power_limit, int, 0644);
-MODULE_PARM_DESC(power_limit, "GPU power limit in watts (150-250)");
-
+MODULE_PARM_DESC(power_limit, "Power limit in watts (default: 175)");
 module_param(num_dma_channels, int, 0644);
-MODULE_PARM_DESC(num_dma_channels, "Number of DMA channels (4-12)");
+MODULE_PARM_DESC(num_dma_channels, "Number of DMA channels (default: 8)");
 
 /* Forward declarations */
 static void anarchy_service_shutdown(struct device *dev);
+extern int anarchy_thunderbolt_init(void);
+extern void anarchy_thunderbolt_cleanup(void);
 
-/* Service driver configuration */
+/* Driver structure */
+struct device_driver anarchy_driver = {
+    .name = "anarchy",
+    .owner = THIS_MODULE,
+    .bus = &tb_bus_type,
+    .shutdown = anarchy_service_shutdown,
+};
+EXPORT_SYMBOL_GPL(anarchy_driver);
+
+#define ANARCHY_PROTOCOL_KEY 0x42  /* Replace with your actual protocol key */
+
+/* Service ID table */
 static const struct tb_service_id anarchy_service_table[] = {
     {
-        .match_flags = ANARCHY_SERVICE_MATCH_FLAGS,
-        .protocol_key = ANARCHY_SERVICE_ID,
-        .protocol_id = ANARCHY_SERVICE_ID,
-        .protocol_version = ANARCHY_SERVICE_VERSION,
-        .protocol_revision = 0,
-        .driver_data = 0
+        .match_flags = TBSVC_MATCH_PROTOCOL_KEY,
+        .protocol_key = ANARCHY_PROTOCOL_KEY,
+        .protocol_id = 1,
+        .protocol_version = 1,
     },
-    { }  /* Terminator */
+    { }
 };
-
-MODULE_DEVICE_TABLE(tbsvc, anarchy_service_table);
 
 /* Service driver structure */
 static struct tb_service_driver anarchy_service_driver = {
     .driver = {
-        .name = "anarchy-egpu",
-        .pm = &anarchy_service_pm,
-        .shutdown = anarchy_service_shutdown,
+        .name = "anarchy",
+        .owner = THIS_MODULE,
     },
     .probe = anarchy_service_probe,
     .remove = anarchy_service_remove,
@@ -72,27 +81,34 @@ static void anarchy_service_shutdown(struct device *dev)
     anarchy_gpu_power_down(adev);
 }
 
+/* Module initialization */
 static int __init anarchy_init(void)
 {
     int ret;
 
     pr_info("Anarchy eGPU: Initializing mobile RTX 4090 driver\n");
 
-    /* Validate module parameters */
-    if (power_limit < 150 || power_limit > 250) {
-        pr_err("Invalid power limit %d (must be between 150-250W)\n", power_limit);
-        return -EINVAL;
-    }
-
-    if (num_dma_channels < 4 || num_dma_channels > 12) {
-        pr_err("Invalid DMA channels %d (must be between 4-12)\n", num_dma_channels);
-        return -EINVAL;
+    /* Register the driver */
+    ret = driver_register(&anarchy_driver);
+    if (ret) {
+        pr_err("Failed to register anarchy driver\n");
+        return ret;
     }
 
     /* Initialize Thunderbolt subsystem */
+    ret = anarchy_thunderbolt_init();
+    if (ret) {
+        pr_err("Failed to initialize Thunderbolt subsystem\n");
+        driver_unregister(&anarchy_driver);
+        return ret;
+    }
+
+    /* Register the service driver */
     ret = tb_register_service_driver(&anarchy_service_driver);
     if (ret) {
-        pr_err("Failed to register service driver: %d\n", ret);
+        pr_err("Failed to register anarchy service driver\n");
+        anarchy_thunderbolt_cleanup();
+        driver_unregister(&anarchy_driver);
         return ret;
     }
 
@@ -102,14 +118,21 @@ static int __init anarchy_init(void)
     return 0;
 }
 
+/* Module cleanup */
 static void __exit anarchy_exit(void)
 {
-    pr_info("Anarchy eGPU: Unloading driver\n");
     tb_unregister_service_driver(&anarchy_service_driver);
+    anarchy_thunderbolt_cleanup();
+    driver_unregister(&anarchy_driver);
+    pr_info("Anarchy eGPU: Unloading driver\n");
 }
 
 module_init(anarchy_init);
 module_exit(anarchy_exit);
+
+/* Export module parameters */
+EXPORT_SYMBOL_GPL(power_limit);
+EXPORT_SYMBOL_GPL(num_dma_channels);
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Anarchy eGPU Development Team");

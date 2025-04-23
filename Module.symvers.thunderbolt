@@ -1,0 +1,4 @@
+0x00000000	tb_bus_type	/lib/modules/$(uname -r)/kernel/drivers/thunderbolt/thunderbolt.ko	EXPORT_SYMBOL
+0x00000000	tb_service_driver_register	/lib/modules/$(uname -r)/kernel/drivers/thunderbolt/thunderbolt.ko	EXPORT_SYMBOL
+0x00000000	tb_service_driver_unregister	/lib/modules/$(uname -r)/kernel/drivers/thunderbolt/thunderbolt.ko	EXPORT_SYMBOL
+EOF 

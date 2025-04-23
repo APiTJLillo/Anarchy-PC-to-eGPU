@@ -2,15 +2,9 @@
 #define ANARCHY_GPU_EMU_H
 
 #include <linux/types.h>
-#include "forward.h"
-
-/* GPU Emulation States */
-enum gpu_emu_state {
-    GPU_EMU_STATE_DISABLED = 0,
-    GPU_EMU_STATE_INIT,
-    GPU_EMU_STATE_RUNNING,
-    GPU_EMU_STATE_ERROR
-};
+#include <linux/spinlock.h>
+#include "anarchy_device.h"
+#include "gpu_emu_forward.h"
 
 /* GPU Performance Registers */
 #define GPU_EMU_CLOCK_OFFSET     0x1000

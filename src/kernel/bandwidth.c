@@ -1,24 +1,26 @@
 #include <linux/module.h>
 #include <linux/workqueue.h>
+#include <linux/io.h>
+#include <linux/delay.h>
+#include <linux/thunderbolt.h>
+#include "include/anarchy_device.h"
 #include "include/common.h"
 #include "include/pcie_types.h"
 #include "include/perf_monitor.h"
+#include "include/dma.h"
+#include "include/thunderbolt_utils.h"
+
+/* PCIe bandwidth counters */
+#define PCIE_RX_COUNTER      0x5000
+#define PCIE_TX_COUNTER      0x5004
+
+/* Bandwidth monitoring interval (in milliseconds) */
+#define BANDWIDTH_UPDATE_INTERVAL 1000
 
 /* TB4/USB4 bandwidth configuration */
 #define TB4_MAX_BANDWIDTH    40000  /* 40 Gbps max */
 #define PCIE_X8_BANDWIDTH    16000  /* ~16 GB/s for PCIe 4.0 x8 */
 #define MIN_GAMING_BANDWIDTH 10000  /* 10 Gbps minimum for gaming */
-
-struct bandwidth_config {
-    u32 current_bandwidth;
-    u32 required_bandwidth;
-    u32 available_bandwidth;
-    bool bandwidth_critical;
-    struct workqueue_struct *wq;
-    struct delayed_work update_work;
-    spinlock_t lock;
-    unsigned long last_update;
-};
 
 /* Get current PCIe bandwidth usage */
 u32 anarchy_pcie_get_bandwidth_usage(struct anarchy_device *adev)
@@ -36,7 +38,8 @@ u32 anarchy_pcie_get_bandwidth_usage(struct anarchy_device *adev)
 
 static void bandwidth_update_work(struct work_struct *work)
 {
-    struct bandwidth_config *bw = container_of(to_delayed_work(work),
+    struct delayed_work *delayed_work = to_delayed_work(work);
+    struct bandwidth_config *bw = container_of(delayed_work,
                                              struct bandwidth_config,
                                              update_work);
     struct anarchy_device *adev = container_of(bw, struct anarchy_device,
@@ -54,7 +57,7 @@ static void bandwidth_update_work(struct work_struct *work)
     
     if (bw->available_bandwidth < MIN_GAMING_BANDWIDTH) {
         if (!bw->bandwidth_critical) {
-            dev_warn(&adev->dev, "Low bandwidth detected (%d Gbps)\n",
+            dev_warn(adev->dev, "Low bandwidth detected (%d Gbps)\n",
                     bw->available_bandwidth / 1000);
             bw->bandwidth_critical = true;
         }
@@ -62,12 +65,12 @@ static void bandwidth_update_work(struct work_struct *work)
         /* Apply optimizations */
         anarchy_dma_optimize_transfers(adev);
         if (!adev->texture_compression_enabled) {
-            dev_info(&adev->dev, "Enabling texture compression\n");
+            dev_info(adev->dev, "Enabling texture compression\n");
             adev->texture_compression_enabled = true;
         }
     } else if (bw->bandwidth_critical && 
                bw->available_bandwidth >= MIN_GAMING_BANDWIDTH) {
-        dev_info(&adev->dev, "Bandwidth restored to normal levels\n");
+        dev_info(adev->dev, "Bandwidth restored to normal levels\n");
         bw->bandwidth_critical = false;
     }
     

@@ -1,32 +1,38 @@
-#ifndef ANARCHY_BANDWIDTH_H
-#define ANARCHY_BANDWIDTH_H
+#ifndef _ANARCHY_BANDWIDTH_H_
+#define _ANARCHY_BANDWIDTH_H_
 
 #include <linux/types.h>
-#include "forward.h"
+#include <linux/workqueue.h>
+#include <linux/spinlock.h>
+#include "anarchy_device_forward.h"
+
+/* PCIe bandwidth counters */
+#define PCIE_RX_COUNTER      0x5000
+#define PCIE_TX_COUNTER      0x5004
+
+/* Bandwidth monitoring interval (in milliseconds) */
+#define BANDWIDTH_UPDATE_INTERVAL 1000
+
+/* TB4/USB4 bandwidth configuration */
+#define TB4_MAX_BANDWIDTH    40000  /* 40 Gbps max */
+#define PCIE_X8_BANDWIDTH    16000  /* ~16 GB/s for PCIe 4.0 x8 */
+#define MIN_GAMING_BANDWIDTH 10000  /* 10 Gbps minimum for gaming */
 
 /* Bandwidth configuration structure */
 struct bandwidth_config {
-    unsigned int current_bw;
-    unsigned int required_bw;
-    unsigned int available_bw;
-    unsigned int min_bw;
-    unsigned int max_bw;
-    unsigned int optimal_bw;
-    bool bw_critical;
+    u32 current_bandwidth;
+    u32 required_bandwidth;
+    u32 available_bandwidth;
+    bool bandwidth_critical;
+    struct workqueue_struct *wq;
+    struct delayed_work update_work;
     spinlock_t lock;
     unsigned long last_update;
 };
 
-/* Bandwidth thresholds */
-#define BW_MIN_REQUIRED   20000  /* 20 Gbps minimum */
-#define BW_OPTIMAL        32000  /* 32 Gbps optimal */
-#define BW_MAX_USB4       40000  /* 40 Gbps max USB4 */
-#define BW_CRITICAL_LOW   15000  /* 15 Gbps critical */
-
 /* Bandwidth management functions */
-int anarchy_bandwidth_init(struct anarchy_device *adev);
-void anarchy_bandwidth_cleanup(struct anarchy_device *adev);
-int anarchy_bandwidth_update(struct anarchy_device *adev);
-bool anarchy_bandwidth_check_critical(struct anarchy_device *adev);
+u32 anarchy_pcie_get_bandwidth_usage(struct anarchy_device *adev);
+int init_bandwidth_monitoring(struct anarchy_device *adev);
+void cleanup_bandwidth_monitoring(struct anarchy_device *adev);
 
-#endif /* ANARCHY_BANDWIDTH_H */
+#endif /* _ANARCHY_BANDWIDTH_H_ */

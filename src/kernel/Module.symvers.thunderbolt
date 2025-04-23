@@ -1,0 +1,6 @@
+0xf7370f56	tb_read32	drivers/thunderbolt/thunderbolt	EXPORT_SYMBOL_GPL
+0xbea5ff1e	tb_write32	drivers/thunderbolt/thunderbolt	EXPORT_SYMBOL_GPL
+0x12345678	anarchy_tb_init	drivers/thunderbolt/thunderbolt	EXPORT_SYMBOL_GPL
+0x87654321	anarchy_tb_fini	drivers/thunderbolt/thunderbolt	EXPORT_SYMBOL_GPL
+0xabcdef01	anarchy_thunderbolt_init	drivers/thunderbolt/thunderbolt	EXPORT_SYMBOL_GPL
+0x10fedcba	anarchy_thunderbolt_cleanup	drivers/thunderbolt/thunderbolt	EXPORT_SYMBOL_GPL

@@ -2,6 +2,7 @@
 #define ANARCHY_COMMAND_TYPES_H
 
 #include <linux/types.h>
+#include "dma_types.h"
 
 /* Command categories */
 enum command_category {
@@ -16,14 +17,6 @@ enum command_category {
 #define CMD_FLAG_LOWLAT  (1 << 0)  /* Low latency command */
 #define CMD_FLAG_NOSYNC  (1 << 1)  /* Don't sync with other commands */
 #define CMD_FLAG_BATCH   (1 << 2)  /* Can be batched with other commands */
-
-/* DMA priorities */
-enum dma_priority {
-    PRIORITY_LOW = 0,
-    PRIORITY_NORMAL,
-    PRIORITY_TEXTURE,
-    PRIORITY_HIGH
-};
 
 /* Command batch structure */
 struct command_batch {

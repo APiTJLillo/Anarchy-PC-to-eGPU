@@ -2,6 +2,9 @@
 #include <linux/device.h>
 #include "include/anarchy_device.h"
 #include "include/common.h"
+#include "include/pcie_forward.h"
+#include "include/pcie_state.h"
+#include "include/pcie_types.h"
 
 int anarchy_device_init(struct anarchy_device *adev)
 {
@@ -87,6 +90,7 @@ err_wq:
     destroy_workqueue(adev->wq);
     return ret;
 }
+EXPORT_SYMBOL_GPL(anarchy_device_init);
 
 void anarchy_device_exit(struct anarchy_device *adev)
 {
@@ -113,6 +117,7 @@ void anarchy_device_exit(struct anarchy_device *adev)
     adev->state = ANARCHY_DEVICE_STATE_UNINITIALIZED;
     adev->flags &= ~ANARCHY_DEVICE_FLAG_INITIALIZED;
 }
+EXPORT_SYMBOL_GPL(anarchy_device_exit);
 
 int anarchy_device_connect(struct anarchy_device *adev)
 {
@@ -189,6 +194,7 @@ int anarchy_device_suspend(struct anarchy_device *adev)
     mutex_unlock(&adev->lock);
     return ret;
 }
+EXPORT_SYMBOL_GPL(anarchy_device_suspend);
 
 int anarchy_device_resume(struct anarchy_device *adev)
 {
@@ -232,3 +238,4 @@ unlock:
     mutex_unlock(&adev->lock);
     return ret;
 }
+EXPORT_SYMBOL_GPL(anarchy_device_resume);

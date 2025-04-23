@@ -10,56 +10,53 @@
 #include "include/gpu_offsets.h"
 #include "include/thunderbolt_service.h"
 
-static void handle_device_connect(struct anarchy_device *adev)
+void handle_device_connect(struct anarchy_device *adev)
 {
-    struct device *dev = &adev->dev;
     int ret;
 
-    if (!adev || !dev)
-        return;
+    pr_info("Anarchy eGPU: Device connected\n");
 
-    dev_info(dev, "Device connected\n");
-
-    /* Initialize USB4 interface */
-    ret = anarchy_usb4_init_device(adev);
+    /* Initialize PCIe link */
+    ret = anarchy_pcie_enable_link(adev);
     if (ret) {
-        dev_err(dev, "Failed to initialize USB4 device: %d\n", ret);
+        pr_err("Failed to enable PCIe link: %d\n", ret);
         return;
     }
 
-    /* Apply game optimizations */
+    /* Wait for link to stabilize */
+    msleep(100);
+
+    /* Optimize PCIe settings */
+    ret = anarchy_pcie_optimize_settings(adev);
+    if (ret) {
+        pr_err("Failed to optimize PCIe settings: %d\n", ret);
+        goto disable_link;
+    }
+
+    /* Apply game-specific optimizations */
     ret = anarchy_optimize_for_game(adev, "default");
-    if (ret)
-        dev_warn(dev, "Failed to apply game optimizations: %d\n", ret);        /* Enable PCIe link */
-        ret = anarchy_pcie_enable_link(adev);
-        if (ret) {
-            dev_err(dev, "Failed to enable PCIe link: %d\n", ret);
-            return;
-        }
+    if (ret) {
+        pr_err("Failed to apply game optimizations: %d\n", ret);
+        goto disable_link;
+    }
 
-        /* Optimize PCIe settings for eGPU */
-        ret = anarchy_pcie_optimize_settings(adev);
-        if (ret)
-            dev_warn(dev, "Failed to optimize PCIe settings: %d\n", ret);
+    pr_info("Anarchy eGPU: Device initialization complete\n");
+    return;
 
-    /* Start performance monitoring */
-    schedule_delayed_work(&adev->perf_monitor.update_work, 0);
+disable_link:
+    anarchy_pcie_disable_link(adev);
 }
 
-static void handle_device_disconnect(struct anarchy_device *adev)
+void handle_device_disconnect(struct anarchy_device *adev)
 {
-    struct device *dev = &adev->dev;
-
-    if (!adev || !dev)
-        return;
-
-    dev_info(dev, "Device disconnected\n");
-
-    /* Stop performance monitoring */
-    cancel_delayed_work_sync(&adev->perf_monitor.update_work);
+    pr_info("Anarchy eGPU: Device disconnected\n");
 
     /* Disable PCIe link */
-    anarchy_pcie_disable(&adev->pcie_state);
+    anarchy_pcie_disable_link(adev);
+
+    /* Reset device state */
+    adev->pcie_state.state = ANARCHY_PCIE_STATE_DOWN;
+    adev->pcie_state.enabled = false;
 }
 
 static void handle_hotplug_event(struct tb_service *service, void *data)
@@ -86,7 +83,7 @@ int anarchy_hotplug_init(struct anarchy_device *adev)
     /* Register hotplug handler */
     ret = tb_service_register_handler(adev->service, handle_hotplug_event);
     if (ret) {
-        dev_err(&adev->dev, "Failed to register hot-plug handler: %d\n", ret);
+        dev_err(&adev->pdev->dev, "Failed to register hot-plug handler: %d\n", ret);
         return ret;
     }
 

@@ -6,31 +6,20 @@
 #include <linux/thunderbolt.h>
 #include <linux/mutex.h>
 #include <linux/workqueue.h>
-#include "forward.h"
-#include "pcie_state.h"
+#include "anarchy_device_forward.h"
+#include "pcie_forward.h"
+#include "pcie_types.h"
 #include "ring.h"
 #include "power_mgmt.h"
 #include "perf_monitor.h"
-
-/* Device state */
-enum anarchy_device_state {
-    ANARCHY_DEVICE_STATE_UNINITIALIZED = 0,
-    ANARCHY_DEVICE_STATE_INITIALIZING,
-    ANARCHY_DEVICE_STATE_READY,
-    ANARCHY_DEVICE_STATE_ERROR,
-    ANARCHY_DEVICE_STATE_DISCONNECTED
-};
-
-/* Device flags */
-#define ANARCHY_DEVICE_FLAG_INITIALIZED   (1 << 0)
-#define ANARCHY_DEVICE_FLAG_CONNECTED     (1 << 1)
-#define ANARCHY_DEVICE_FLAG_ERROR         (1 << 2)
-#define ANARCHY_DEVICE_FLAG_SUSPENDED     (1 << 3)
+#include "thermal_forward.h"
+#include "gpu_emu_forward.h"
+#include "bandwidth.h"
 
 /* Main device structure */
 struct anarchy_device {
     /* Device identification */
-    struct device dev;  /* Note: Changed from pointer to embedded struct */
+    struct device *dev;  /* Changed back to pointer */
     struct pci_dev *pdev;
     char name[32];
     u32 device_id;
@@ -44,10 +33,15 @@ struct anarchy_device {
     /* Thunderbolt/PCIe state */
     struct anarchy_pcie_state pcie_state;
     struct tb_service *service;
+    struct tb_port *tb_port;  /* Added TB port */
     
     /* Configuration */
     unsigned int dma_channels;   /* Number of DMA channels */
     unsigned int ring_buffer_size; /* Ring buffer size in bytes */
+    
+    /* DMA configuration */
+    u32 dma_batch_size;
+    bool low_latency_mode;
     
     /* Ring buffers */
     struct anarchy_ring tx_ring;
@@ -65,6 +59,10 @@ struct anarchy_device {
     /* Power management */
     struct power_profile power_profile;
     
+    /* Bandwidth monitoring */
+    struct bandwidth_config bandwidth;
+    bool texture_compression_enabled;
+    
     /* Workqueues */
     struct workqueue_struct *wq;
     struct work_struct init_work;
@@ -79,6 +77,11 @@ struct anarchy_device {
     
     /* Private data */
     void *private_data;
+
+    struct thermal_profile thermal_profile;
+
+    /* GPU Emulation */
+    struct gpu_emu_interface *gpu_emu;
 };
 
 /* Device management functions */

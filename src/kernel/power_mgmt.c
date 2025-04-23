@@ -63,7 +63,7 @@ int anarchy_power_init(struct anarchy_device *adev)
     /* Check if power management is supported */
     reg = readl(adev->mmio_base + PWR_CTRL_OFFSET);
     if (!(reg & BIT(31))) {
-        dev_err(&adev->dev, "Power management not supported\n");
+        dev_err(&adev->pdev->dev, "Power management not supported\n");
         return -ENODEV;
     }
 

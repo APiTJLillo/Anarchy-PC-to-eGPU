@@ -23,4 +23,17 @@ static inline bool tb_service_reset(struct tb_service *svc)
     return false;
 }
 
+/* PCIe initialization and cleanup */
+int anarchy_pcie_init(struct anarchy_device *adev);
+void anarchy_pcie_exit(struct anarchy_device *adev);
+
+/* PCIe link control */
+void anarchy_pcie_disable_link(struct anarchy_device *adev);
+int anarchy_pcie_train_link(struct anarchy_device *adev);
+int anarchy_pcie_retrain_link(struct anarchy_device *adev);
+
+/* PCIe error handling */
+void anarchy_pcie_handle_error(struct anarchy_device *adev,
+                             enum anarchy_pcie_error_type error);
+
 #endif /* ANARCHY_PCIE_H */

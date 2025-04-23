@@ -3,38 +3,20 @@
 
 #include <linux/types.h>
 #include <linux/pci.h>
-#include "forward.h"
-
-/* PCIe link states */
-enum anarchy_pcie_link_state {
-    ANARCHY_PCIE_STATE_UNKNOWN = 0,
-    ANARCHY_PCIE_STATE_DOWN,
-    ANARCHY_PCIE_STATE_TRAINING,
-    ANARCHY_PCIE_STATE_ACTIVE,
-    ANARCHY_PCIE_STATE_ERROR
-};
-
-/* PCIe link speeds */
-enum anarchy_pcie_speed {
-    ANARCHY_PCIE_SPEED_UNKNOWN = 0,
-    ANARCHY_PCIE_SPEED_2_5GT,   /* PCIe 1.0 */
-    ANARCHY_PCIE_SPEED_5GT,     /* PCIe 2.0 */
-    ANARCHY_PCIE_SPEED_8GT,     /* PCIe 3.0 */
-    ANARCHY_PCIE_SPEED_16GT,    /* PCIe 4.0 */
-    ANARCHY_PCIE_SPEED_32GT,    /* PCIe 5.0 */
-    ANARCHY_PCIE_SPEED_64GT     /* PCIe 6.0 */
-};
+#include <linux/spinlock.h>
+#include <linux/workqueue.h>
+#include "pcie_forward.h"
 
 /* PCIe constants */
 #define ANARCHY_PCIE_MAX_LANES  16
 #define ANARCHY_PCIE_MAX_SPEED  ANARCHY_PCIE_SPEED_32GT  /* RTX 4090 max PCIe 5.0 */
 
 /* PCIe link width values */
-#define ANARCHY_PCIE_x1   1
-#define ANARCHY_PCIE_x2   2
-#define ANARCHY_PCIE_x4   4
-#define ANARCHY_PCIE_x8   8
-#define ANARCHY_PCIE_x16  16
+#define ANARCHY_PCIE_x1   ANARCHY_PCIE_WIDTH_x1
+#define ANARCHY_PCIE_x2   ANARCHY_PCIE_WIDTH_x2
+#define ANARCHY_PCIE_x4   ANARCHY_PCIE_WIDTH_x4
+#define ANARCHY_PCIE_x8   ANARCHY_PCIE_WIDTH_x8
+#define ANARCHY_PCIE_x16  ANARCHY_PCIE_WIDTH_x16
 
 /* PCIe generation aliases */
 #define ANARCHY_PCIE_GEN1  ANARCHY_PCIE_SPEED_2_5GT
@@ -44,14 +26,12 @@ enum anarchy_pcie_speed {
 #define ANARCHY_PCIE_GEN5  ANARCHY_PCIE_SPEED_32GT
 #define ANARCHY_PCIE_GEN6  ANARCHY_PCIE_SPEED_64GT
 
-/* PCIe error types */
-enum anarchy_pcie_error_type {
-    ANARCHY_PCIE_ERR_NONE = 0,
-    ANARCHY_PCIE_ERR_TRAINING,
-    ANARCHY_PCIE_ERR_LINK_DOWN,
-    ANARCHY_PCIE_ERR_TIMEOUT,
-    ANARCHY_PCIE_ERR_CORRECTABLE,
-    ANARCHY_PCIE_ERR_UNCORRECTABLE
+/* PCIe recovery state */
+struct anarchy_pcie_recovery {
+    spinlock_t recovery_lock;
+    atomic_t retries;
+    struct work_struct recovery_work;
+    unsigned long last_down;
 };
 
 /* PCIe link state structure */
@@ -67,6 +47,7 @@ struct anarchy_pcie_state {
     bool needs_retrain;               /* Link needs retraining flag */
     u32 error_count;                  /* Link error counter */
     enum anarchy_pcie_error_type last_error; /* Last error type */
+    struct anarchy_pcie_recovery recovery;  /* Recovery state */
 };
 
 #endif /* ANARCHY_PCIE_TYPES_H */

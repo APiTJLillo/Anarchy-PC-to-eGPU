@@ -1,6 +1,9 @@
 #ifndef ANARCHY_MEMORY_MGMT_H
 #define ANARCHY_MEMORY_MGMT_H
 
+#include <linux/types.h>
+#include "dma_types.h"
+
 /* Memory regions for game compatibility */
 #define GAME_TEXTURE_CACHE_SIZE    (512 * 1024 * 1024)  /* 512MB texture cache */
 #define GAME_COMMAND_BUFFER_SIZE   (32 * 1024 * 1024)   /* 32MB command buffer */
@@ -12,11 +15,17 @@
 #define ACCESS_PATTERN_RANDOM      1
 #define ACCESS_PATTERN_STREAMING   2
 
-/* Priority levels for different types of data */
-#define PRIORITY_TEXTURE          3  /* Highest - for texture streaming */
-#define PRIORITY_GEOMETRY         2  /* High - for geometry data */
-#define PRIORITY_SHADER           1  /* Medium - for shader programs */
-#define PRIORITY_OTHER            0  /* Low - for miscellaneous data */
+/* Memory allocation flags */
+#define MEM_FLAG_CACHED    (1 << 0)  /* Allocate cached memory */
+#define MEM_FLAG_UNCACHED  (1 << 1)  /* Allocate uncached memory */
+#define MEM_FLAG_WC        (1 << 2)  /* Write combining memory */
+#define MEM_FLAG_SECURE    (1 << 3)  /* Secure memory */
+
+/* Memory priorities - map to DMA priorities */
+#define PRIORITY_TEXTURE   DMA_PRIO_TEXTURE  /* Highest - for texture streaming */
+#define PRIORITY_GEOMETRY  DMA_PRIO_HIGH     /* High - for geometry data */
+#define PRIORITY_SHADER    DMA_PRIO_NORMAL   /* Medium - for shader programs */
+#define PRIORITY_OTHER     DMA_PRIO_LOW      /* Low - for miscellaneous data */
 
 /* Transfer modes */
 #define TRANSFER_MODE_NORMAL      0  /* Standard transfer */

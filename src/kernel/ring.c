@@ -3,6 +3,7 @@
 #include <linux/pci.h>
 #include <linux/io.h>
 #include <linux/delay.h>
+#include <linux/module.h>
 #include "include/ring.h"
 #include "include/anarchy_device.h"
 #include "include/common.h"
@@ -26,6 +27,13 @@ struct dma_ring {
     unsigned int tail;
     spinlock_t lock;
 };
+
+/* Ring buffer registers */
+#define RING_REG_BASE          0x20000
+#define RING_CHANNEL_OFFSET    0x1000
+#define RING_DMA_DESC_ADDR     0x100
+#define RING_DMA_START         0x104
+#define RING_STATUS            0x108
 
 static int setup_dma_ring(struct anarchy_device *adev, struct anarchy_ring *ring)
 {
@@ -87,13 +95,13 @@ static int setup_dma_ring(struct anarchy_device *adev, struct anarchy_ring *ring
     }
 
     spin_lock_init(&dma->lock);
-    ring->private_data = dma;
+    ring->dma = dma;
     return 0;
 }
 
 static void cleanup_dma_ring(struct anarchy_device *adev, struct anarchy_ring *ring)
 {
-    struct dma_ring *dma = ring->private_data;
+    struct dma_ring *dma = ring->dma;
     int i;
 
     if (!dma)
@@ -120,14 +128,14 @@ static void cleanup_dma_ring(struct anarchy_device *adev, struct anarchy_ring *r
     }
 
     kfree(dma);
-    ring->private_data = NULL;
+    ring->dma = NULL;
 }
 
 static int submit_dma_transfer(struct anarchy_device *adev,
                              struct anarchy_ring *ring,
                              struct anarchy_transfer *transfer)
 {
-    struct dma_ring *dma = ring->private_data;
+    struct dma_ring *dma = ring->dma;
     unsigned int next_head;
     unsigned long flags;
     int ret = 0;
@@ -163,7 +171,6 @@ unlock:
     return ret;
 }
 
-/* Update existing ring buffer functions to use DMA */
 int anarchy_ring_init(struct anarchy_device *adev, struct anarchy_ring *ring)
 {
     int ret;
@@ -176,6 +183,8 @@ int anarchy_ring_init(struct anarchy_device *adev, struct anarchy_ring *ring)
     ring->state = ANARCHY_RING_STATE_STOPPED;
     ring->head = 0;
     ring->tail = 0;
+    ring->is_tx = false;
+    ring->dma = NULL;
 
     /* Initialize synchronization */
     spin_lock_init(&ring->lock);
@@ -210,16 +219,44 @@ void anarchy_ring_cleanup(struct anarchy_device *adev, struct anarchy_ring *ring
     kfree(ring->transfers);
 }
 
+int anarchy_ring_start(struct anarchy_device *adev, struct anarchy_ring *ring, bool tx)
+{
+    if (!adev || !ring)
+        return -EINVAL;
+
+    ring->is_tx = tx;
+    ring->state = ANARCHY_RING_STATE_RUNNING;
+    ring->head = 0;
+    ring->tail = 0;
+
+    return 0;
+}
+
+void anarchy_ring_stop(struct anarchy_device *adev, struct anarchy_ring *ring)
+{
+    if (!adev || !ring)
+        return;
+
+    ring->state = ANARCHY_RING_STATE_STOPPED;
+    ring->head = 0;
+    ring->tail = 0;
+}
+
 int anarchy_ring_transfer(struct anarchy_device *adev, struct anarchy_ring *ring,
-                         struct anarchy_transfer *transfer)
+                         void *data, size_t size, struct anarchy_transfer *transfer)
 {
     int ret;
 
-    if (!adev || !ring || !transfer)
+    if (!adev || !ring || !data || !size || !transfer)
         return -EINVAL;
 
     if (ring->state != ANARCHY_RING_STATE_RUNNING)
         return -EIO;
+
+    /* Initialize transfer */
+    transfer->buffer = data;
+    transfer->size = size;
+    transfer->flags = 0;
 
     /* Submit DMA transfer */
     ret = submit_dma_transfer(adev, ring, transfer);
@@ -229,3 +266,20 @@ int anarchy_ring_transfer(struct anarchy_device *adev, struct anarchy_ring *ring
     atomic_inc(&ring->pending);
     return 0;
 }
+
+void anarchy_ring_complete(struct anarchy_device *adev, struct anarchy_ring *ring,
+                         struct anarchy_transfer *transfer)
+{
+    if (!adev || !ring || !transfer)
+        return;
+
+    atomic_dec(&ring->pending);
+    wake_up(&ring->wait);
+}
+
+EXPORT_SYMBOL_GPL(anarchy_ring_init);
+EXPORT_SYMBOL_GPL(anarchy_ring_cleanup);
+EXPORT_SYMBOL_GPL(anarchy_ring_start);
+EXPORT_SYMBOL_GPL(anarchy_ring_stop);
+EXPORT_SYMBOL_GPL(anarchy_ring_transfer);
+EXPORT_SYMBOL_GPL(anarchy_ring_complete);
