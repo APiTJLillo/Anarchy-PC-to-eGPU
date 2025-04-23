@@ -164,7 +164,19 @@ void cleanup_performance_monitoring(struct anarchy_device *adev)
 
 void anarchy_perf_exit(struct anarchy_device *adev)
 {
-    // ... existing implementation ...
+    struct perf_monitor *monitor;
+
+    if (!adev)
+        return;
+
+    monitor = &adev->perf_monitor;
+
+    /* Stop monitoring if still running */
+    if (monitor->enabled)
+        anarchy_perf_stop(adev);
+
+    /* Cancel and flush any pending work */
+    cancel_delayed_work_sync(&monitor->update_work);
 }
 EXPORT_SYMBOL_GPL(anarchy_perf_exit);
 
