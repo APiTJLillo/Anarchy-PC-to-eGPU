@@ -1,4 +1,4 @@
-savedcmd_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/game_compat.o := gcc-14 -Wp,-MMD,/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/.game_compat.o.d -nostdinc -I./arch/x86/include -I./arch/x86/include/generated  -I./include -I./arch/x86/include/uapi -I./arch/x86/include/generated/uapi -I./include/uapi -I./include/generated/uapi -include ./include/linux/compiler-version.h -include ./include/linux/kconfig.h -I./ubuntu/include -include ./include/linux/compiler_types.h -D__KERNEL__ -fmacro-prefix-map=./= -std=gnu11 -fshort-wchar -funsigned-char -fno-common -fno-PIE -fno-strict-aliasing -mno-sse -mno-mmx -mno-sse2 -mno-3dnow -mno-avx -fcf-protection=none -m64 -falign-jumps=1 -falign-loops=1 -mno-80387 -mno-fp-ret-in-387 -mpreferred-stack-boundary=3 -mskip-rax-setup -mtune=generic -mno-red-zone -mcmodel=kernel -Wno-sign-compare -fno-asynchronous-unwind-tables -mindirect-branch=thunk-extern -mindirect-branch-register -mindirect-branch-cs-prefix -mfunction-return=thunk-extern -fno-jump-tables -mharden-sls=all -fpatchable-function-entry=16,16 -fno-delete-null-pointer-checks -O2 -fno-allow-store-data-races -fstack-protector-strong -fno-omit-frame-pointer -fno-optimize-sibling-calls -ftrivial-auto-var-init=zero -fno-stack-clash-protection -fzero-call-used-regs=used-gpr -pg -mrecord-mcount -mfentry -DCC_USING_FENTRY -fmin-function-alignment=16 -fstrict-flex-arrays=3 -fno-strict-overflow -fno-stack-check -fconserve-stack -Wall -Wundef -Werror=implicit-function-declaration -Werror=implicit-int -Werror=return-type -Werror=strict-prototypes -Wno-format-security -Wno-trigraphs -Wno-frame-address -Wno-address-of-packed-member -Wmissing-declarations -Wmissing-prototypes -Wframe-larger-than=1024 -Wno-main -Wno-dangling-pointer -Wvla -Wno-pointer-sign -Wcast-function-type -Wno-stringop-overflow -Wno-array-bounds -Wno-alloc-size-larger-than -Wimplicit-fallthrough=5 -Werror=date-time -Werror=incompatible-pointer-types -Werror=designated-init -Wenum-conversion -Wextra -Wunused -Wno-unused-but-set-variable -Wno-unused-const-variable -Wno-packed-not-aligned -Wno-format-overflow -Wno-format-truncation -Wno-stringop-truncation -Wno-override-init -Wno-missing-field-initializers -Wno-type-limits -Wno-shift-negative-value -Wno-maybe-uninitialized -Wno-sign-compare -Wno-unused-parameter -g -gdwarf-5 -DDEBUG -g -O1 -DCONFIG_DEBUG_INFO_BTF=1  -fsanitize=bounds-strict -fsanitize=shift -fsanitize=bool -fsanitize=enum  -fsanitize=signed-integer-overflow  -DMODULE  -DKBUILD_BASENAME='"game_compat"' -DKBUILD_MODNAME='"anarchy"' -D__KBUILD_MODNAME=kmod_anarchy -c -o /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/game_compat.o /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/game_compat.c   ; ./tools/objtool/objtool --hacks=jump_label --hacks=noinstr --hacks=skylake --retpoline --rethunk --sls --stackval --static-call --uaccess --prefix=16   --module /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/game_compat.o
+savedcmd_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/game_compat.o := x86_64-linux-gnu-gcc-14 -Wp,-MMD,/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/.game_compat.o.d -nostdinc -I./arch/x86/include -I./arch/x86/include/generated  -I./include -I./arch/x86/include/uapi -I./arch/x86/include/generated/uapi -I./include/uapi -I./include/generated/uapi -include ./include/linux/compiler-version.h -include ./include/linux/kconfig.h -I./ubuntu/include -include ./include/linux/compiler_types.h -D__KERNEL__ -fmacro-prefix-map=./= -std=gnu11 -fshort-wchar -funsigned-char -fno-common -fno-PIE -fno-strict-aliasing -mno-sse -mno-mmx -mno-sse2 -mno-3dnow -mno-avx -fcf-protection=none -m64 -falign-jumps=1 -falign-loops=1 -mno-80387 -mno-fp-ret-in-387 -mpreferred-stack-boundary=3 -mskip-rax-setup -mtune=generic -mno-red-zone -mcmodel=kernel -Wno-sign-compare -fno-asynchronous-unwind-tables -mindirect-branch=thunk-extern -mindirect-branch-register -mindirect-branch-cs-prefix -mfunction-return=thunk-extern -fno-jump-tables -mharden-sls=all -fpatchable-function-entry=16,16 -fno-delete-null-pointer-checks -O2 -fno-allow-store-data-races -fstack-protector-strong -fno-omit-frame-pointer -fno-optimize-sibling-calls -ftrivial-auto-var-init=zero -fno-stack-clash-protection -fzero-call-used-regs=used-gpr -pg -mrecord-mcount -mfentry -DCC_USING_FENTRY -fmin-function-alignment=16 -fstrict-flex-arrays=3 -fno-strict-overflow -fno-stack-check -fconserve-stack -Wall -Wundef -Werror=implicit-function-declaration -Werror=implicit-int -Werror=return-type -Werror=strict-prototypes -Wno-format-security -Wno-trigraphs -Wno-frame-address -Wno-address-of-packed-member -Wmissing-declarations -Wmissing-prototypes -Wframe-larger-than=1024 -Wno-main -Wno-dangling-pointer -Wvla -Wno-pointer-sign -Wcast-function-type -Wno-stringop-overflow -Wno-array-bounds -Wno-alloc-size-larger-than -Wimplicit-fallthrough=5 -Werror=date-time -Werror=incompatible-pointer-types -Werror=designated-init -Wenum-conversion -Wextra -Wunused -Wno-unused-but-set-variable -Wno-unused-const-variable -Wno-packed-not-aligned -Wno-format-overflow -Wno-format-truncation -Wno-stringop-truncation -Wno-override-init -Wno-missing-field-initializers -Wno-type-limits -Wno-shift-negative-value -Wno-maybe-uninitialized -Wno-sign-compare -Wno-unused-parameter -g -gdwarf-5 -g -fno-stack-protector -mno-red-zone -mcmodel=kernel -DCONFIG_DEBUG_INFO_BTF=1 -DCONFIG_RUST=1  -fsanitize=bounds-strict -fsanitize=shift -fsanitize=bool -fsanitize=enum  -fsanitize=signed-integer-overflow  -DMODULE  -DKBUILD_BASENAME='"game_compat"' -DKBUILD_MODNAME='"anarchy"' -D__KBUILD_MODNAME=kmod_anarchy -c -o /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/game_compat.o /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/game_compat.c   ; ./tools/objtool/objtool --hacks=jump_label --hacks=noinstr --hacks=skylake --retpoline --rethunk --sls --stackval --static-call --uaccess --prefix=16   --module /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/game_compat.o
 
 source_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/game_compat.o := /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/game_compat.c
 
@@ -19,6 +19,7 @@ deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/game_compat.o := \
     $(wildcard include/config/LD_DEAD_CODE_DATA_ELIMINATION) \
     $(wildcard include/config/LTO_CLANG) \
     $(wildcard include/config/HAVE_ARCH_COMPILER_H) \
+    $(wildcard include/config/CC_HAS_COUNTED_BY) \
     $(wildcard include/config/UBSAN_SIGNED_WRAP) \
     $(wildcard include/config/CC_HAS_ASM_INLINE) \
   include/linux/compiler_attributes.h \
@@ -63,6 +64,7 @@ deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/game_compat.o := \
     $(wildcard include/config/TRACE_BRANCH_PROFILING) \
     $(wildcard include/config/PROFILE_ALL_BRANCHES) \
     $(wildcard include/config/OBJTOOL) \
+    $(wildcard include/config/64BIT) \
   arch/x86/include/generated/asm/rwonce.h \
   include/asm-generic/rwonce.h \
   include/linux/kasan-checks.h \
@@ -73,7 +75,6 @@ deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/game_compat.o := \
     $(wildcard include/config/UID16) \
     $(wildcard include/config/ARCH_DMA_ADDR_T_64BIT) \
     $(wildcard include/config/PHYS_ADDR_T_64BIT) \
-    $(wildcard include/config/64BIT) \
     $(wildcard include/config/ARCH_32BIT_USTAT_F_TINODE) \
   include/uapi/linux/types.h \
   arch/x86/include/generated/uapi/asm/types.h \
@@ -692,6 +693,7 @@ deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/game_compat.o := \
   include/generated/bounds.h \
   include/linux/mm_types.h \
     $(wildcard include/config/HAVE_ALIGNED_STRUCT_PAGE) \
+    $(wildcard include/config/HUGETLB_PMD_PAGE_TABLE_SHARING) \
     $(wildcard include/config/USERFAULTFD) \
     $(wildcard include/config/ANON_VMA_NAME) \
     $(wildcard include/config/PER_VMA_LOCK) \
@@ -943,6 +945,7 @@ deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/game_compat.o := \
   include/asm-generic/fixmap.h \
   arch/x86/include/asm/pgtable-invert.h \
   arch/x86/include/asm/uaccess_64.h \
+  arch/x86/include/asm/runtime-const.h \
   include/asm-generic/access_ok.h \
     $(wildcard include/config/ALTERNATE_USER_ADDRESS_SPACE) \
   include/linux/cred.h \
@@ -1250,8 +1253,8 @@ deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/game_compat.o := \
 $(deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/game_compat.o):
 
 /home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/game_compat.o: $(wildcard ./tools/objtool/objtool)
-#SYMVER init_game_compatibility 0x7311d0b0
-#SYMVER cleanup_game_compatibility 0xcc20ec1d
-#SYMVER init_game_specific 0x4f9d68f8
-#SYMVER setup_game_memory_region 0xf5ddeb98
-#SYMVER cleanup_game_memory_region 0xf82972f3
+#SYMVER init_game_compatibility 0x3b4614d5
+#SYMVER cleanup_game_compatibility 0x4f1d0a76
+#SYMVER init_game_specific 0xc29244bf
+#SYMVER setup_game_memory_region 0x2e833414
+#SYMVER cleanup_game_memory_region 0x6410b93f

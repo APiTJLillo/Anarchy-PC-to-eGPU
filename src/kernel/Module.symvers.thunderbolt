@@ -1,4 +1,4 @@
-0x0000000000000000\ttb_bus_type\t/lib/modules/6.11.0-9-generic/kernel/drivers/thunderbolt/thunderbolt.ko.zst\tEXPORT_SYMBOL_GPL
+0xffffffffc083d460	tb_bus_type	/lib/modules/6.11.0-9-generic/kernel/drivers/thunderbolt/thunderbolt.ko.zst	EXPORT_SYMBOL_GPL
 0xc43361f8	tb_service_type	drivers/thunderbolt/thunderbolt	EXPORT_SYMBOL_GPL	
 0x84946b40	tb_ring_alloc_rx	drivers/thunderbolt/thunderbolt	EXPORT_SYMBOL_GPL	
 0x06d42ee9	tb_ring_alloc_tx	drivers/thunderbolt/thunderbolt	EXPORT_SYMBOL_GPL	

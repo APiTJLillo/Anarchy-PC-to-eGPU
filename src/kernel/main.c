@@ -19,11 +19,14 @@
 /* Module parameters */
 int power_limit = 175;  /* Default power limit in watts */
 int num_dma_channels = 8;  /* Default number of DMA channels */
+int test_mode = 0;  /* Test mode disabled by default */
 
 module_param(power_limit, int, 0644);
 MODULE_PARM_DESC(power_limit, "Power limit in watts (default: 175)");
 module_param(num_dma_channels, int, 0644);
 MODULE_PARM_DESC(num_dma_channels, "Number of DMA channels (default: 8)");
+module_param(test_mode, int, 0644);
+MODULE_PARM_DESC(test_mode, "Enable test mode without Thunderbolt hardware (0=disabled, 1=enabled)");
 
 /* Forward declarations */
 static void anarchy_service_shutdown(struct device *dev);
@@ -93,10 +96,18 @@ static int __init anarchy_init(void)
 {
     int ret;
 
+    pr_info("Anarchy eGPU Driver initializing (test_mode=%d)\n", test_mode);
+
     ret = anarchy_thunderbolt_init();
     if (ret) {
         pr_err("Failed to initialize thunderbolt: %d\n", ret);
         return ret;
+    }
+
+    /* Skip Thunderbolt registration if in test mode */
+    if (test_mode) {
+        pr_info("Anarchy eGPU: Running in test mode, skipping Thunderbolt registration\n");
+        return 0;
     }
 
     ret = tb_service_driver_register(&anarchy_service_driver);
@@ -111,7 +122,9 @@ static int __init anarchy_init(void)
 
 static void __exit anarchy_exit(void)
 {
-    tb_service_driver_unregister(&anarchy_service_driver);
+    if (!test_mode) {
+        tb_service_driver_unregister(&anarchy_service_driver);
+    }
     anarchy_thunderbolt_cleanup();
 }
 

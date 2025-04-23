@@ -1,6 +1,6 @@
-# Simple kernel module Makefile
 KVER := $(shell uname -r)
 KDIR := /lib/modules/$(KVER)/build
+PWD := $(shell pwd)
 
 obj-m := anarchy.o
 anarchy-objs := main.o thunderbolt.o thunderbolt_bus.o thunderbolt_driver.o \
@@ -9,10 +9,9 @@ anarchy-objs := main.o thunderbolt.o thunderbolt_bus.o thunderbolt_driver.o \
                 pcie.o device.o gpu_emu.o perf_monitor.o service_probe.o \
                 gpu_power.o service_pm.o
 
-EXTRA_CFLAGS += -DDEBUG -g -O1
-
 all:
-	$(MAKE) -C $(KDIR) M=$(PWD) modules CONFIG_DEBUG_INFO=y V=1
+	cp $(KDIR)/Module.symvers .
+	$(MAKE) -C $(KDIR) M=$(PWD) modules
 
 clean:
 	$(MAKE) -C $(KDIR) M=$(PWD) clean

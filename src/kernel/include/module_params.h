@@ -4,5 +4,6 @@
 /* Module parameters */
 extern int power_limit;
 extern int num_dma_channels;
+extern int test_mode;
 
-#endif /* ANARCHY_MODULE_PARAMS_H */ 
+#endif /* ANARCHY_MODULE_PARAMS_H */

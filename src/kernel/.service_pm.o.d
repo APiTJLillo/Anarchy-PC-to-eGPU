@@ -245,15 +245,15 @@ service_pm.o: \
  include/linux/page_table_check.h arch/x86/include/asm/pgtable_64.h \
  arch/x86/include/asm/fixmap.h arch/x86/include/uapi/asm/vsyscall.h \
  include/asm-generic/fixmap.h arch/x86/include/asm/pgtable-invert.h \
- arch/x86/include/asm/uaccess_64.h include/asm-generic/access_ok.h \
- include/linux/cred.h include/linux/key.h include/linux/assoc_array.h \
- include/linux/sched/user.h include/linux/posix-timers.h \
- include/linux/alarmtimer.h include/linux/rcu_sync.h \
- include/linux/delayed_call.h include/linux/uuid.h include/linux/errseq.h \
- include/linux/ioprio.h include/linux/sched/rt.h \
- include/linux/iocontext.h include/uapi/linux/ioprio.h \
- include/linux/fs_types.h include/linux/mount.h \
- include/linux/mnt_idmapping.h include/linux/slab.h \
+ arch/x86/include/asm/uaccess_64.h arch/x86/include/asm/runtime-const.h \
+ include/asm-generic/access_ok.h include/linux/cred.h include/linux/key.h \
+ include/linux/assoc_array.h include/linux/sched/user.h \
+ include/linux/posix-timers.h include/linux/alarmtimer.h \
+ include/linux/rcu_sync.h include/linux/delayed_call.h \
+ include/linux/uuid.h include/linux/errseq.h include/linux/ioprio.h \
+ include/linux/sched/rt.h include/linux/iocontext.h \
+ include/uapi/linux/ioprio.h include/linux/fs_types.h \
+ include/linux/mount.h include/linux/mnt_idmapping.h include/linux/slab.h \
  include/linux/percpu-refcount.h include/linux/kasan.h \
  include/linux/kasan-enabled.h include/linux/kasan-tags.h \
  include/linux/rw_hint.h include/uapi/linux/fs.h include/linux/quota.h \

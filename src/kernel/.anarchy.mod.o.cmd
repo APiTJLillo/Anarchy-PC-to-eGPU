@@ -22,6 +22,7 @@ deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/anarchy.mod.o := \
     $(wildcard include/config/LD_DEAD_CODE_DATA_ELIMINATION) \
     $(wildcard include/config/LTO_CLANG) \
     $(wildcard include/config/HAVE_ARCH_COMPILER_H) \
+    $(wildcard include/config/CC_HAS_COUNTED_BY) \
     $(wildcard include/config/UBSAN_SIGNED_WRAP) \
     $(wildcard include/config/CC_HAS_ASM_INLINE) \
   include/linux/compiler_attributes.h \
@@ -64,6 +65,7 @@ deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/anarchy.mod.o := \
     $(wildcard include/config/TRACE_BRANCH_PROFILING) \
     $(wildcard include/config/PROFILE_ALL_BRANCHES) \
     $(wildcard include/config/OBJTOOL) \
+    $(wildcard include/config/64BIT) \
   arch/x86/include/generated/asm/rwonce.h \
   include/asm-generic/rwonce.h \
   include/linux/kasan-checks.h \
@@ -74,7 +76,6 @@ deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/anarchy.mod.o := \
     $(wildcard include/config/UID16) \
     $(wildcard include/config/ARCH_DMA_ADDR_T_64BIT) \
     $(wildcard include/config/PHYS_ADDR_T_64BIT) \
-    $(wildcard include/config/64BIT) \
     $(wildcard include/config/ARCH_32BIT_USTAT_F_TINODE) \
   include/uapi/linux/types.h \
   arch/x86/include/generated/uapi/asm/types.h \
@@ -693,6 +694,7 @@ deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/anarchy.mod.o := \
   include/generated/bounds.h \
   include/linux/mm_types.h \
     $(wildcard include/config/HAVE_ALIGNED_STRUCT_PAGE) \
+    $(wildcard include/config/HUGETLB_PMD_PAGE_TABLE_SHARING) \
     $(wildcard include/config/USERFAULTFD) \
     $(wildcard include/config/ANON_VMA_NAME) \
     $(wildcard include/config/PER_VMA_LOCK) \
@@ -944,6 +946,7 @@ deps_/home/tj/Documents/Anarchy-PC-to-eGPU/src/kernel/anarchy.mod.o := \
   include/asm-generic/fixmap.h \
   arch/x86/include/asm/pgtable-invert.h \
   arch/x86/include/asm/uaccess_64.h \
+  arch/x86/include/asm/runtime-const.h \
   include/asm-generic/access_ok.h \
     $(wildcard include/config/ALTERNATE_USER_ADDRESS_SPACE) \
   include/linux/cred.h \
